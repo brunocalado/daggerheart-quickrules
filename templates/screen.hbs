@@ -1,0 +1,116 @@
+<div class="dh-quickrules-container">
+    {{!-- Left Sidebar --}}
+    <aside class="dh-quickrules-sidebar">
+        <div class="dh-sidebar-header">
+            {{!-- Top Row: All Buttons in one container --}}
+            <div class="dh-view-modes">
+                {{!-- Main View Toggles --}}
+                <button type="button" class="dh-mode-btn {{#if (eq viewMode 'all')}}active{{/if}}" 
+                        data-action="toggleViewMode" data-mode="all">
+                    All
+                </button>
+                <button type="button" class="dh-mode-btn {{#if (eq viewMode 'favorites')}}active{{/if}}" 
+                        data-action="toggleViewMode" data-mode="favorites">
+                    Favorites
+                </button>
+
+                {{!-- Source Toggle (Square Button) --}}
+                <button type="button" class="dh-mode-btn square-btn {{#if useAllContent}}active{{/if}}" 
+                        data-action="toggleSource" 
+                        data-tooltip="{{#if useAllContent}}Source: All Content{{else}}Source: Rules Only{{/if}}">
+                    {{#if useAllContent}}
+                        <i class="fas fa-layer-group"></i>
+                    {{else}}
+                        <i class="fas fa-book"></i>
+                    {{/if}}
+                </button>
+            </div>
+
+            {{!-- Search --}}
+            <div class="dh-search-container">
+                <input type="text" class="dh-search-input" placeholder="Search pages..." autocomplete="off">
+            </div>
+        </div>
+        
+        <ul class="dh-page-list">
+            {{#each alphabetizedPages as |group letter|}}
+                <li class="dh-letter-group" data-letter="{{letter}}">
+                    <div class="dh-letter-header">{{letter}}</div>
+                    <ul class="dh-sub-list">
+                        {{#each group as |page|}}
+                            <li class="dh-page-item" data-page-name="{{page.name}}">
+                                {{!-- Favorite Button --}}
+                                <button type="button" 
+                                        class="dh-fav-btn {{#if page.isFavorite}}is-fav{{/if}}"
+                                        data-action="toggleFavorite"
+                                        data-page-id="{{page.id}}"
+                                        data-tooltip="{{#if page.isFavorite}}Remove from Favorites{{else}}Add to Favorites{{/if}}">
+                                    <i class="{{#if page.isFavorite}}fas{{else}}far{{/if}} fa-star"></i>
+                                </button>
+
+                                {{!-- View Button --}}
+                                <button type="button" 
+                                        class="dh-page-btn {{#if page.active}}active{{/if}}"
+                                        data-action="viewPage" 
+                                        data-page-id="{{page.id}}">
+                                    {{page.name}}
+                                </button>
+                            </li>
+                        {{/each}}
+                    </ul>
+                </li>
+            {{/each}}
+            
+            {{#unless hasPages}}
+                <li class="dh-empty-state" style="color: #777; padding: 10px; text-align: center;">
+                    {{#if (eq viewMode 'favorites')}}
+                        No favorites yet.<br>Star items in "All" mode!
+                    {{else}}
+                        Journal not found.<br>
+                        Expected: <em>{{targetJournalName}}</em><br>
+                        in compendium: <code>daggerheart-quickrules.quickrules</code>
+                    {{/if}}
+                </li>
+            {{/unless}}
+        </ul>
+    </aside>
+
+    {{!-- Right Content Area --}}
+    <main class="dh-content-area" style="font-size: {{fontSize}}px;">
+        {{#if activeContent}}
+            <div class="dh-content-controls">
+                {{!-- Font Size Controls --}}
+                <button type="button" class="dh-control-btn" data-action="changeFontSize" data-direction="down" title="Decrease Text Size">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <span class="dh-font-label">Font Size</span>
+                <button type="button" class="dh-control-btn" data-action="changeFontSize" data-direction="up" title="Increase Text Size">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button type="button" class="dh-control-btn" data-action="changeFontSize" data-direction="reset" title="Reset Font Size">
+                    <i class="fas fa-redo"></i>
+                </button>
+                
+                {{!-- Divider --}}
+                <div style="width: 1px; height: 20px; background: #999; margin: 0 4px;"></div>
+
+                {{!-- Share Button --}}
+                <button type="button" class="dh-control-btn" data-action="sharePage" title="Share to Chat">
+                    <i class="fas fa-comment-alt"></i> Share
+                </button>
+            </div>
+
+            <div class="journal-entry-page">
+                {{{activeContent}}}
+            </div>
+        {{else}}
+            {{!-- Empty State --}}
+            <div style="text-align: center; color: #333; margin-top: 20%;">
+                <h2 style="color: #4b0000; font-family: 'Modesto Condensed', serif; font-size: 3em;">Daggerheart</h2>
+                {{!-- UPDATED: Darker Bronze color (#8B6914) for better visibility on parchment --}}
+                <h3 style="color: #8B6914; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Quick Rules</h3>
+                <p>Select a page from the list to view its contents.</p>
+            </div>
+        {{/if}}
+    </main>
+</div>
