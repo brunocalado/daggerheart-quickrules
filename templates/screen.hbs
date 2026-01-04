@@ -94,9 +94,16 @@
                 {{!-- Divider --}}
                 <div style="width: 1px; height: 20px; background: #999; margin: 0 4px;"></div>
 
-                {{!-- Share Button --}}
-                <button type="button" class="dh-control-btn" data-action="sharePage" title="Share to Chat">
-                    <i class="fas fa-comment-alt"></i> Share
+                {{!-- GM Only: Force Open for Players --}}
+                {{#if isGM}}
+                <button type="button" class="dh-control-btn" data-action="forceOpen" title="Show to Players (Force Open)">
+                    <i class="fas fa-users"></i>
+                </button>
+                {{/if}}
+
+                {{!-- Share Button (Updated Text) --}}
+                <button type="button" class="dh-control-btn" data-action="sharePage" title="Send to Chat">
+                    <i class="fas fa-comment-alt"></i> Send to Chat
                 </button>
             </div>
 

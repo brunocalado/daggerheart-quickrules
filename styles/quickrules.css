@@ -413,6 +413,19 @@
     animation: dh-pulse-glow 3s infinite ease-in-out;
 }
 
+/* === NEW SIZE VARIANTS === */
+#dh-quickrules-trigger.size-small {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+}
+
+#dh-quickrules-trigger.size-large {
+    width: 81px; /* 50% larger than 54px */
+    height: 81px;
+    font-size: 39px; /* 50% larger than 26px */
+}
+
 #dh-quickrules-trigger:hover {
     color: #fff;
     border-color: #fff;

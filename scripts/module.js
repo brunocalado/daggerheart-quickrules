@@ -20,7 +20,40 @@ Hooks.once("init", () => {
         }
     });
 
-    // 2. Expose Global Commands
+    // 2. Register Setting for Floating Button Size
+    game.settings.register(MODULE_ID, "floatingButtonSize", {
+        name: "Floating Button Size",
+        hint: "Adjust the size of the floating question mark button.",
+        scope: "client",
+        config: true,
+        type: String,
+        choices: {
+            "normal": "Normal",
+            "small": "Smaller",
+            "large": "Larger (50%)"
+        },
+        default: "normal",
+        onChange: () => {
+            // Refresh button if it exists and is enabled
+            if (game.settings.get(MODULE_ID, "showFloatingButton")) {
+                const btn = document.getElementById(BUTTON_ID);
+                if (btn) btn.remove(); 
+                createFloatingButton();
+            }
+        }
+    });
+
+    // 3. COMMUNICATION CHANNEL (Reactive Setting Pattern)
+    // This replaces the socket approach. When this setting changes, it runs _handleForceOpenRequest on all clients.
+    game.settings.register(MODULE_ID, "forceOpenRequest", {
+        scope: "world",
+        config: false,
+        type: Object,
+        default: { pageId: null, time: 0 },
+        onChange: _handleForceOpenRequest
+    });
+
+    // 4. Expose Global Commands
     window.QuickRules = {
         Open: () => {
             const module = game.modules.get(MODULE_ID);
@@ -30,8 +63,8 @@ Hooks.once("init", () => {
                 module.api = new DaggerheartQuickRules();
             }
             
-            // Always render (bring to top if already open)
-            module.api.render(true);
+            // V13/ApplicationV2 syntax
+            module.api.render({ force: true });
         },
         
         Build: async (mode = 'standard') => {
@@ -42,7 +75,6 @@ Hooks.once("init", () => {
              await DaggerheartQuickRules.buildSRD(mode);
         },
 
-        // Reset function requested
         Reset: () => {
             const btn = document.getElementById(BUTTON_ID);
             if (btn) {
@@ -56,6 +88,36 @@ Hooks.once("init", () => {
     
     console.log("Daggerheart Quick Rules | Commands QuickRules.Open(), QuickRules.Build(mode), and QuickRules.Reset() registered.");
 });
+
+/**
+ * Handles the incoming request to open the Quick Rules (triggered by setting change)
+ * This runs on EVERY client when the setting updates.
+ */
+function _handleForceOpenRequest(value) {
+    // Basic validation
+    if (!value || !value.pageId) return;
+
+    // Ignore if I am the GM (I likely triggered it myself, or I don't need to be forced)
+    if (game.user.isGM) return;
+
+    console.log("Daggerheart Quick Rules | Received Force Open Request:", value);
+
+    const module = game.modules.get(MODULE_ID);
+            
+    // 1. Ensure API instance exists
+    if (!module.api) {
+        module.api = new DaggerheartQuickRules();
+    }
+    
+    // 2. Call Intelligent Navigation
+    // This method sets selectedPageId AND switches contexts if needed
+    module.api.forceNavigateToPage(value.pageId);
+
+    // Optional: If minimized, maximize it
+    if (module.api.minimized) module.api.maximize();
+
+    ui.notifications.info("GM updated Quick Rules view.");
+}
 
 // Create Floating Button on Ready (if setting is enabled)
 Hooks.once('ready', async () => {
@@ -81,10 +143,8 @@ Hooks.once('ready', async () => {
 
 // Hook to add button to Daggerheart Menu (sidebar)
 Hooks.on("renderDaggerheartMenu", (app, element, data) => {
-    // Ensure we are working with a DOM element (handle jQuery if present)
     const html = element instanceof jQuery ? element[0] : element;
 
-    // Create the button
     const myButton = document.createElement("button");
     myButton.type = "button";
     myButton.innerHTML = `<i class="fas fa-book-open"></i> Open Guide`; 
@@ -92,15 +152,13 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
     myButton.style.marginTop = "10px";
     myButton.style.width = "100%";
     
-    // Bind action
     myButton.onclick = () => window.QuickRules.Open();
 
-    // Inject using the logic provided
     const fieldset = html.querySelector("fieldset");
     if (fieldset) {
         const newFieldset = document.createElement("fieldset");
         const legend = document.createElement("legend");
-        legend.innerText = "Reference"; // Custom Legend Updated
+        legend.innerText = "Reference"; 
         newFieldset.appendChild(legend);
         newFieldset.appendChild(myButton);
         fieldset.after(newFieldset);
@@ -109,9 +167,6 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
     }
 });
 
-/**
- * Helper to add/remove the button dynamically
- */
 function toggleFloatingButton(show) {
     if (show) {
         createFloatingButton();
@@ -121,9 +176,6 @@ function toggleFloatingButton(show) {
     }
 }
 
-/**
- * Creates the draggable floating button
- */
 function createFloatingButton() {
     if (document.getElementById(BUTTON_ID)) return;
 
@@ -131,9 +183,12 @@ function createFloatingButton() {
     btn.id = BUTTON_ID;
     btn.innerHTML = '<i class="fas fa-question"></i>';
     btn.title = "Open Daggerheart Quick Rules";
+    
+    const size = game.settings.get(MODULE_ID, "floatingButtonSize") || "normal";
+    btn.classList.add(`size-${size}`);
+
     document.body.appendChild(btn);
 
-    // Retrieve saved position
     const savedPos = localStorage.getItem('dh-quickrules-pos');
     if (savedPos) {
         try {
@@ -150,21 +205,18 @@ function createFloatingButton() {
         btn.style.left = '20px';
     }
 
-    // --- UPDATED Drag Logic with Threshold ---
-    // This fixes the issue where sensitive clicks were registering as drags
     let isDragging = false;
     let startX = 0;
     let startY = 0;
     let initialLeft = 0;
     let initialTop = 0;
-    const dragThreshold = 3; // pixels needed to move before it counts as a drag
+    const dragThreshold = 3; 
 
     btn.addEventListener('mousedown', (e) => {
         isDragging = true;
         startX = e.clientX;
         startY = e.clientY;
         
-        // Get current positions parsed as integers
         const rect = btn.getBoundingClientRect();
         initialLeft = rect.left;
         initialTop = rect.top;
@@ -179,7 +231,6 @@ function createFloatingButton() {
         const dy = e.clientY - startY;
         const dist = Math.sqrt(dx*dx + dy*dy);
 
-        // Only move if we crossed the threshold
         if (dist > dragThreshold) {
             e.preventDefault(); 
             btn.style.left = `${initialLeft + dx}px`;
@@ -193,17 +244,14 @@ function createFloatingButton() {
         isDragging = false;
         btn.style.cursor = 'grab';
         
-        // Calculate total distance moved during the click
         const dx = e.clientX - startX;
         const dy = e.clientY - startY;
         const dist = Math.sqrt(dx*dx + dy*dy);
         
-        // If moved significantly, save position. 
         if (dist > dragThreshold) {
             const pos = { top: btn.style.top, left: btn.style.left };
             localStorage.setItem('dh-quickrules-pos', JSON.stringify(pos));
         } else {
-            // If movement was tiny (< 3px), treat it as a CLICK
             window.QuickRules.Open();
         }
     });
