@@ -403,8 +403,9 @@
     font-family: "Modesto Condensed", serif;
     margin-top: 20px;
 }
+/* UPDATED: Unified H2 color for light mode */
 .dh-quickrules-container.light .journal-entry-page h2 {
-    color: #a07a22;
+    color: #8B6914; 
     border-bottom: 1px solid #dcb15d;
 }
 
@@ -413,6 +414,7 @@
     color: #C9A060;
     margin-top: 15px;
 }
+/* UPDATED: Unified H3/H4 color for light mode */
 .dh-quickrules-container.light .journal-entry-page h3, 
 .dh-quickrules-container.light .journal-entry-page h4 {
     color: #8B6914;
