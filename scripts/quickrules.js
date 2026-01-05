@@ -68,86 +68,95 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             this.viewMode = 'all';
         }
 
+        // Logic updated: We generally rely on the main loaded journal now.
+        // We ensure we switch to "All Content" mode if the page is not a "Rule" page to ensure visibility.
+        
         let currentJournal = await this._getActiveJournal();
         let found = false;
+        let targetPage = null;
 
         if (currentJournal && currentJournal.pages.has(pageId)) {
             found = true;
+            targetPage = currentJournal.pages.get(pageId);
         }
 
+        // Fallback: Check Custom Folder (World)
         if (!found) {
             const customFolder = game.folders.find(f => f.name === "📜 Custom Quick Rules" && f.type === "JournalEntry");
             if (customFolder) {
                 for (const j of customFolder.contents) {
                     if (j.pages.has(pageId)) {
                         found = true; 
+                        targetPage = j.pages.get(pageId);
                         break;
                     }
                 }
             }
         }
 
-        if (!found) {
-            console.log("Daggerheart QuickRules | Page not found in current source. Checking alternate source...");
+        // If found, check if we need to enable "All Content" mode
+        if (found && targetPage) {
+            const isRule = targetPage.getFlag("daggerheart-quickrules", "type") === "rule";
             const useAll = game.user.getFlag("daggerheart-quickrules", "useAllContent") ?? true;
-            
-            const otherName = useAll ? "Daggerheart SRD - Rules" : "Daggerheart SRD - All";
-            const otherJournal = game.journal.getName(otherName);
 
-            if (otherJournal && otherJournal.pages.has(pageId)) {
-                console.log(`Daggerheart QuickRules | Found page in "${otherName}". Switching user source preference.`);
-                await game.user.setFlag("daggerheart-quickrules", "useAllContent", !useAll);
-                found = true;
+            // If it's NOT a rule page (it's a compendium item) and we are in "Rules Only" mode, switch to "All"
+            if (!isRule && !useAll) {
+                console.log("Daggerheart QuickRules | Target page is extended content. Switching to 'All Content' mode.");
+                await game.user.setFlag("daggerheart-quickrules", "useAllContent", true);
             }
-        }
 
-        if (found) {
             this.selectedPageId = pageId;
             this.render({ force: true, focus: true });
         } else {
-            console.warn("Daggerheart QuickRules | Page ID sent by GM could not be found in any known journal.", pageId);
+            console.warn("Daggerheart QuickRules | Page ID sent by GM could not be found.", pageId);
             ui.notifications.warn("The page shared by the GM could not be found (Version mismatch?).");
         }
     }
 
-    /** * Helper to get the currently active journal Document */
+    /** * Helper to get the currently active journal Document 
+     * UPDATED: Prioritizes "Daggerheart SRD - All" to support filtering strategy.
+     */
     async _getActiveJournal() {
-        const useAll = game.user.getFlag("daggerheart-quickrules", "useAllContent") ?? true;
-        const targetName = useAll ? "Daggerheart SRD - All" : "Daggerheart SRD - Rules";
         const packName = "daggerheart-quickrules.quickrules"; 
-        
-        const worldJournal = game.journal.getName(targetName);
-        if (worldJournal) {
-            return worldJournal;
-        }
-
         const pack = game.packs.get(packName);
-        if (!pack) {
-            return null;
-        }
-
-        const index = await pack.getIndex();
-        const entry = index.find(e => e.name === targetName);
         
-        if (!entry) {
+        if (!pack) {
+            console.error(`Daggerheart QuickRules | Compendium pack ${packName} not found.`);
             return null;
         }
 
-        return await pack.getDocument(entry._id);
+        // 1. Try to find the "All" journal first (Super-set)
+        let journals = await pack.getDocuments({name: "Daggerheart SRD - All"});
+        if (journals && journals.length > 0) return journals[0];
+
+        // 2. Fallback to "Rules" journal if "All" doesn't exist
+        journals = await pack.getDocuments({name: "Daggerheart SRD - Rules"});
+        if (journals && journals.length > 0) return journals[0];
+
+        return null;
     }
 
     /** @override */
     async _prepareContext(options) {
         const useAllContent = game.user.getFlag("daggerheart-quickrules", "useAllContent") ?? true;
-        const targetJournalName = useAllContent ? "Daggerheart SRD - All" : "Daggerheart SRD - Rules";
+        // The display name depends on what we are showing, but the source file is likely "All"
+        const targetJournalName = useAllContent ? "All Content" : "Rules Only";
 
         let pages = [];
-
         const journalEntry = await this._getActiveJournal();
+        
         if (journalEntry) {
             pages = Array.from(journalEntry.pages);
         }
 
+        // --- FILTERING LOGIC ---
+        if (!useAllContent) {
+            // User wants RULES ONLY. Filter based on the flag created during Build.
+            pages = pages.filter(p => p.getFlag("daggerheart-quickrules", "type") === "rule");
+        }
+        // If useAllContent is true, we simply keep all pages (Rules + Compendium Items)
+
+        // Custom Content (Always appended)
         const customFolderName = "📜 Custom Quick Rules";
         const customFolder = game.folders.find(f => f.name === customFolderName && f.type === "JournalEntry");
         
@@ -187,6 +196,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             const hiddenPacks = ["daggerheart.adversaries", "daggerheart.environments"];
             pages = pages.filter(p => {
                 const sourcePack = p.getFlag("daggerheart-quickrules", "sourcePack");
+                // If it's a rule (no sourcePack) or selected page, keep it.
+                // If it's from a hidden pack, hide it.
                 if (this.selectedPageId === p.id) return true;
                 if (sourcePack && hiddenPacks.includes(sourcePack)) return false;
                 return true;
@@ -306,7 +317,9 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
         await game.user.setFlag("daggerheart-quickrules", "useAllContent", newSetting);
         
-        this.selectedPageId = null;
+        // Reset selection if we are hiding content that might be selected? 
+        // Better to check in render, but for now we keep it simple.
+        this.selectedPageId = null; 
         this.scrollPos = 0;
         this.searchQuery = "";
         
@@ -414,9 +427,10 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         if (!this.selectedPageId) return;
 
         let page = null;
-        const mainJournal = await this._getActiveJournal();
-        if (mainJournal && mainJournal.pages.has(this.selectedPageId)) {
-            page = mainJournal.pages.get(this.selectedPageId);
+        // Logic updated for sharing: check active context first
+        const currentJournal = await this._getActiveJournal();
+        if (currentJournal && currentJournal.pages.has(this.selectedPageId)) {
+            page = currentJournal.pages.get(this.selectedPageId);
         }
 
         if (!page) {
@@ -472,13 +486,17 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     }
 
     /**
-     * Builds the Split Journal from the Compendium
+     * Builds the Split Journal FROM compendium TO compendium
      */
-    // UPDATED: Default mode is now 'All' instead of 'standard'
     static async buildSRD(mode = 'All') {
-        const sourceUuid = "Compendium.daggerheart.journals.JournalEntry.uNs7ne9VCbbu5dcG";
+        // --- CONFIGURAÇÃO DE ORIGEM ---
+        const sourceCompendiumName = "daggerheart.journals";
+        const sourceJournalId = "uNs7ne9VCbbu5dcG";
+        
+        // --- CONFIGURAÇÃO DE DESTINO (Compêndio do Módulo) ---
+        const targetPackName = "daggerheart-quickrules.quickrules";
         const targetJournalName = (mode === 'All') ? "Daggerheart SRD - All" : "Daggerheart SRD - Rules";
-        const targetFolderName = "QuickRulesDB";
+        
         const protectedAcronyms = ["NPC", "NPCS", "GM", "GMS", "HP", "AP", "DC"]; 
         const minorWords = ["is", "your", "a", "the", "on", "in", "to", "of", "an", "and", "with"];
         const compendiumList = [
@@ -488,40 +506,56 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             "daggerheart.environments", "daggerheart.beastforms"
         ];
 
-        console.log(`Daggerheart QuickRules | Locating Compendium Journal...`);
-        const sourceJournal = await fromUuid(sourceUuid);
+        console.log(`Daggerheart QuickRules | Build Started (${mode}).`);
+        console.log(`Daggerheart QuickRules | Source: ${sourceCompendiumName} | Target: ${targetPackName}`);
 
-        if (!sourceJournal) {
-            console.error(`Daggerheart QuickRules | Could not find source Compendium Journal: ${sourceUuid}`);
+        // 1. Localizar Fonte
+        const sourcePack = game.packs.get(sourceCompendiumName);
+        if (!sourcePack) {
+            const msg = `Source Compendium '${sourceCompendiumName}' not found.`;
+            console.error(msg);
+            ui.notifications.error(msg);
             return;
         }
 
-        console.log(`Daggerheart QuickRules | Processing "${sourceJournal.name}"... Mode: ${mode}`);
-
-        let folder = game.folders.find(f => f.name === targetFolderName && f.type === "JournalEntry");
-        if (!folder) {
-            folder = await Folder.create({
-                name: targetFolderName,
-                type: "JournalEntry"
-            });
+        const sourceJournal = await sourcePack.getDocument(sourceJournalId);
+        if (!sourceJournal) {
+            const msg = `Source Journal '${sourceJournalId}' not found in '${sourceCompendiumName}'.`;
+            console.error(msg);
+            ui.notifications.error(msg);
+            return;
         }
 
-        let targetJournal = game.journal.getName(targetJournalName);
+        // 2. Localizar Pacote de Destino
+        const targetPack = game.packs.get(targetPackName);
+        if (!targetPack) {
+            const msg = `Target Compendium '${targetPackName}' not found.`;
+            console.error(msg);
+            ui.notifications.error(msg);
+            return;
+        }
+
+        // 3. Destrancar pacote se necessário
+        if (targetPack.locked) {
+            console.log("Target pack is locked. Attempting to unlock for build...");
+            await targetPack.configure({locked: false});
+        }
+
+        // 4. Buscar ou Criar Journal no Destino (COMPENDIUM)
+        // Busca usando getDocuments para garantir frescor
+        let targetJournal = (await targetPack.getDocuments({name: targetJournalName}))[0];
+
         if (!targetJournal) {
+            console.log(`Creating new Journal '${targetJournalName}' in pack '${targetPackName}'...`);
             targetJournal = await JournalEntry.create({
                 name: targetJournalName,
-                folder: folder.id,
-                ownership: { default: 2 } 
-            });
+                ownership: { default: 2 } // OBSERVER
+            }, {pack: targetPackName}); // CRITICAL: pack option creates it in compendium
         } else {
-            if (targetJournal.folder?.id !== folder.id) {
-                await targetJournal.update({ folder: folder.id });
-            }
-            if (targetJournal.ownership.default < 2) {
-                await targetJournal.update({ "ownership.default": 2 }); 
-            }
+            console.log(`Updating existing Journal '${targetJournalName}' in pack '${targetPackName}'...`);
         }
 
+        // --- Processamento de Texto (Identico ao anterior) ---
         const newPagesData = [];
         const getHeaderLevel = (node) => {
             if (!node.tagName) return 0;
@@ -560,15 +594,16 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             const body = doc.body;
             const children = Array.from(body.children);
 
-            // --- ACCUMULATORS FOR CONTEXT ---
-            // Stores full HTML of the section, starting with the Header Tag
+            // --- ACCUMULATORS ---
             let activeH2Accumulator = "";
             let activeH3Accumulator = "";
-
+            
+            // UPDATED: ADD FLAG "type: rule" to all base pages
             newPagesData.push({
                 name: formatTitle(page.name),
                 text: { content: content, format: 1 },
-                title: { show: true, level: 1 }
+                title: { show: true, level: 1 },
+                flags: { "daggerheart-quickrules": { type: "rule" } }
             });
 
             if (children.length === 0) continue;
@@ -584,7 +619,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                     newPagesData.push({
                         name: formatTitle(page.name) + " (Intro)",
                         text: { content: introBuffer, format: 1 },
-                        title: { show: false, level: 1 }
+                        title: { show: false, level: 1 },
+                        flags: { "daggerheart-quickrules": { type: "rule" } }
                     });
                 }
             }
@@ -593,34 +629,31 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 const currentNode = children[i];
                 const currentLevel = getHeaderLevel(currentNode);
 
-                // --- 1. DETERMINE CONTEXT TO INJECT (Before updating accumulators) ---
+                // --- 1. DETERMINE CONTEXT ---
                 let contextToInject = "";
                 
                 if (currentLevel === 3) {
-                    // For H3, we just want the H2 context
                     if (activeH2Accumulator) {
                         contextToInject = `<div class="dh-context-group">${activeH2Accumulator}</div>`;
                     }
                 } else if (currentLevel === 4) {
-                    // For H4, we want H2 AND H3
                     if (activeH2Accumulator) contextToInject += `<div class="dh-context-group">${activeH2Accumulator}</div>`;
                     if (activeH3Accumulator) contextToInject += `<div class="dh-context-group">${activeH3Accumulator}</div>`;
                 }
 
-                // --- 2. UPDATE ACCUMULATORS (For future nodes) ---
+                // --- 2. UPDATE ACCUMULATORS ---
                 if (currentLevel === 1) {
                     activeH2Accumulator = "";
                     activeH3Accumulator = "";
                 } 
                 else if (currentLevel === 2) {
-                    activeH2Accumulator = currentNode.outerHTML; // Start with the Header itself
+                    activeH2Accumulator = currentNode.outerHTML; 
                     activeH3Accumulator = ""; 
                 } 
                 else if (currentLevel === 3) {
-                    activeH3Accumulator = currentNode.outerHTML; // Start with the Header itself
+                    activeH3Accumulator = currentNode.outerHTML; 
                 } 
                 else if (currentLevel === 0) {
-                    // Text Node: Append to the deepest active accumulator
                     if (activeH3Accumulator) {
                         activeH3Accumulator += currentNode.outerHTML;
                     } else if (activeH2Accumulator) {
@@ -646,7 +679,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         newPagesData.push({
                             name: title,
                             text: { content: contentHtml, format: 1 },
-                            title: { show: false, level: 1 }
+                            title: { show: false, level: 1 },
+                            flags: { "daggerheart-quickrules": { type: "rule" } }
                         });
                     }
                 }
@@ -662,8 +696,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             const term = match[1].trim();
                             const contentHtml = li.innerHTML; 
                             
-                            // *** CORREÇÃO DO ERRO DE SINTAXE AQUI ***
-                            // Substituí a string corrompida por aspas normais e curvas
                             if (/^["'“]/.test(term)) continue;
 
                             const wordCount = term.split(/\s+/).length;
@@ -673,7 +705,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             newPagesData.push({
                                 name: formatTitle(term),
                                 text: { content: `<p>${contentHtml}</p>`, format: 1 },
-                                title: { show: false, level: 1 }
+                                title: { show: false, level: 1 },
+                                flags: { "daggerheart-quickrules": { type: "rule" } }
                             });
                         }
                     }
@@ -691,7 +724,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         sectionBuffer += subNode.outerHTML;
                     }
 
-                    // --- INJECT CONTEXT WRAPPER ---
                     if (contextToInject) {
                         const contextHtml = `
                         <details class="dh-context-details">
@@ -705,7 +737,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                     newPagesData.push({
                         name: sectionTitle,
                         text: { content: sectionBuffer, format: 1 },
-                        title: { show: false, level: 1 }
+                        title: { show: false, level: 1 },
+                        flags: { "daggerheart-quickrules": { type: "rule" } }
                     });
                 }
             }
@@ -742,6 +775,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             name: itemName,
                             text: { content: pageContent, format: 1 },
                             title: { show: false, level: 1 },
+                            // Note: Compendium items do NOT get type="rule", so filter works
                             flags: { "daggerheart-quickrules": { sourcePack: packName } }
                         });
                     }
@@ -752,16 +786,23 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
 
         if (newPagesData.length > 0) {
+            console.log(`Daggerheart QuickRules | Clearing old pages...`);
             if (targetJournal.pages.size > 0) {
                 const pageIds = targetJournal.pages.map(p => p.id);
+                // Operation on Compendium Document
                 await targetJournal.deleteEmbeddedDocuments("JournalEntryPage", pageIds);
             }
+            
+            console.log(`Daggerheart QuickRules | Creating ${newPagesData.length} new pages in Compendium...`);
             const batchSize = 50;
             for (let i = 0; i < newPagesData.length; i += batchSize) {
                 const batch = newPagesData.slice(i, i + batchSize);
+                // Operation on Compendium Document
                 await targetJournal.createEmbeddedDocuments("JournalEntryPage", batch);
             }
             console.log(`Daggerheart QuickRules | Build Complete!`);
+            
+            // Compendium docs don't always autorefresh UI, but we can try
             targetJournal.sheet.render(true);
         } else {
             console.warn("Daggerheart QuickRules | No content generated.");

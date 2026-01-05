@@ -58,4 +58,6 @@ https://raw.githubusercontent.com/brunocalado/daggerheart-quickrules/main/module
 
 * **License:** MIT License.
 
+* **Assets:** AI Audio and images provided are [CC0 1.0 Universal Public Domain](https://creativecommons.org/publicdomain/zero/1.0/).
+
 **Disclaimer:** This module is an independent creation and is not affiliated with Darrington Press.
