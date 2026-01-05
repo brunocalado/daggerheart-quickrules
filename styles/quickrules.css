@@ -632,14 +632,7 @@
     line-height: 1.4;
 }
 
-.dh-feature-icon {
-    width: 24px;
-    height: 24px;
-    margin-right: 8px;
-    border: none;
-    vertical-align: middle;
-    flex-shrink: 0;
-}
+/* REMOVED .dh-feature-icon since it is no longer used */
 
 .dh-feature-text {
     color: #fff; /* Default text color */

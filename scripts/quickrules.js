@@ -736,17 +736,15 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         let motivesHtml = "";
                         let featuresHtml = "";
 
+                        // ADVERSARIES
                         if (packName === "daggerheart.adversaries") {
                             const sys = item.system;
                             const tier = sys.tier ?? "-";
                             const type = sys.type ? String(sys.type).charAt(0).toUpperCase() + String(sys.type).slice(1) : "-";
                             const diff = sys.difficulty ?? "-";
-                            
-                            // ADDED HP and Stress
                             const hp = sys.resources?.hitPoints?.max ?? "-";
                             const stress = sys.resources?.stress?.max ?? "-";
                             
-                            // Updated stats html layout (Split into two lines)
                             statsHtml = `
                                 <div class="dh-adversary-stats" style="border-bottom: 0; padding-bottom: 0; margin-bottom: 5px;">
                                     <strong>Tier:</strong> <span class="dh-stat-value">${tier}</span> &nbsp;|&nbsp; 
@@ -759,7 +757,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                                 </div>
                             `;
 
-                            // "motivesAndTactics vc coloca apos a descrição"
                             if (sys.motivesAndTactics) {
                                 motivesHtml = `
                                     <h3 style="color: #C9A060; margin-top: 20px;">Motives & Tactics</h3>
@@ -767,7 +764,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                                 `;
                             }
 
-                            // NEW: Features list
                             if (item.items && item.items.size > 0) {
                                 const features = item.items.filter(i => i.type === "feature");
                                 if (features.length > 0) {
@@ -775,16 +771,59 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                                     
                                     for (const feat of features) {
                                         const rawForm = feat.system.featureForm || "passive";
-                                        // Capitalize first letter
                                         const form = rawForm.charAt(0).toUpperCase() + rawForm.slice(1);
-                                        
-                                        // Clean description to allow inline display (remove P tags)
-                                        // Replaces <p>...</p> with the content + a space to separate from next
                                         let cleanDesc = (feat.system.description || "").replace(/<\/?p[^>]*>/g, " ");
                                         
                                         featuresHtml += `
                                             <div class="dh-feature-row">
-                                                <img src="${feat.img}" class="dh-feature-icon" title="${form}">
+                                                <span class="dh-feature-text">
+                                                    <strong>[${form}] ${feat.name}:</strong> 
+                                                    ${cleanDesc}
+                                                </span>
+                                            </div>
+                                        `;
+                                    }
+                                }
+                            }
+                        }
+
+                        // ENVIRONMENTS (New Logic)
+                        if (packName === "daggerheart.environments") {
+                            const sys = item.system;
+                            const tier = sys.tier ?? "-";
+                            const type = sys.type ? String(sys.type).charAt(0).toUpperCase() + String(sys.type).slice(1) : "-";
+                            const diff = sys.difficulty ?? "-";
+
+                            // Header Stats (Similar to Adversary)
+                            statsHtml = `
+                                <div class="dh-adversary-stats">
+                                    <strong>Tier:</strong> <span class="dh-stat-value">${tier}</span> &nbsp;|&nbsp; 
+                                    <strong>Type:</strong> <span class="dh-stat-value">${type}</span> &nbsp;|&nbsp; 
+                                    <strong>Difficulty:</strong> <span class="dh-stat-value">${diff}</span>
+                                </div>
+                            `;
+
+                            // Impulses (After Description)
+                            if (sys.impulses) {
+                                motivesHtml = `
+                                    <h3 style="color: #C9A060; margin-top: 20px;">Impulses</h3>
+                                    <div class="dh-motives">${sys.impulses}</div>
+                                `;
+                            }
+
+                            // Features (Generic logic, same as Adversary)
+                            if (item.items && item.items.size > 0) {
+                                const features = item.items.filter(i => i.type === "feature");
+                                if (features.length > 0) {
+                                    featuresHtml = `<h3 style="color: #C9A060; margin-top: 20px;">Features</h3>`;
+                                    
+                                    for (const feat of features) {
+                                        const rawForm = feat.system.featureForm || "passive";
+                                        const form = rawForm.charAt(0).toUpperCase() + rawForm.slice(1);
+                                        let cleanDesc = (feat.system.description || "").replace(/<\/?p[^>]*>/g, " ");
+                                        
+                                        featuresHtml += `
+                                            <div class="dh-feature-row">
                                                 <span class="dh-feature-text">
                                                     <strong>[${form}] ${feat.name}:</strong> 
                                                     ${cleanDesc}
