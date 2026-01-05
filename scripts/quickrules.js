@@ -26,7 +26,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             controls: []
         },
         position: {
-            width: 1050, // REDUCED WIDTH (Side bar stays fixed, content shrinks)
+            width: 1050, // Updated width
             height: 750
         },
         actions: {
@@ -161,7 +161,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         // Custom Content
         if (filters.custom) {
             const customFolderName = "📜 Custom Quick Rules";
-            const customFolder = game.folders.find(f => f.name === "📜 Custom Quick Rules" && f.type === "JournalEntry");
+            const customFolder = game.folders.find(f => f.name === customFolderName && f.type === "JournalEntry");
             
             if (customFolder) {
                 const customJournals = customFolder.contents; 
@@ -731,8 +731,73 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         const desc = item.system?.description?.value || item.system?.description || "No description available.";
                         const itemName = formatTitle(item.name);
                         
+                        // NEW: Adversary Specific Data
+                        let statsHtml = "";
+                        let motivesHtml = "";
+                        let featuresHtml = "";
+
+                        if (packName === "daggerheart.adversaries") {
+                            const sys = item.system;
+                            const tier = sys.tier ?? "-";
+                            const type = sys.type ? String(sys.type).charAt(0).toUpperCase() + String(sys.type).slice(1) : "-";
+                            const diff = sys.difficulty ?? "-";
+                            
+                            // ADDED HP and Stress
+                            const hp = sys.resources?.hitPoints?.max ?? "-";
+                            const stress = sys.resources?.stress?.max ?? "-";
+                            
+                            // Updated stats html layout (Split into two lines)
+                            statsHtml = `
+                                <div class="dh-adversary-stats" style="border-bottom: 0; padding-bottom: 0; margin-bottom: 5px;">
+                                    <strong>Tier:</strong> <span class="dh-stat-value">${tier}</span> &nbsp;|&nbsp; 
+                                    <strong>Type:</strong> <span class="dh-stat-value">${type}</span> &nbsp;|&nbsp; 
+                                    <strong>Difficulty:</strong> <span class="dh-stat-value">${diff}</span>
+                                </div>
+                                <div class="dh-adversary-stats">
+                                    <strong>HP:</strong> <span class="dh-stat-value">${hp}</span> &nbsp;|&nbsp;
+                                    <strong>Stress:</strong> <span class="dh-stat-value">${stress}</span>
+                                </div>
+                            `;
+
+                            // "motivesAndTactics vc coloca apos a descrição"
+                            if (sys.motivesAndTactics) {
+                                motivesHtml = `
+                                    <h3 style="color: #C9A060; margin-top: 20px;">Motives & Tactics</h3>
+                                    <div class="dh-motives">${sys.motivesAndTactics}</div>
+                                `;
+                            }
+
+                            // NEW: Features list
+                            if (item.items && item.items.size > 0) {
+                                const features = item.items.filter(i => i.type === "feature");
+                                if (features.length > 0) {
+                                    featuresHtml = `<h3 style="color: #C9A060; margin-top: 20px;">Features</h3>`;
+                                    
+                                    for (const feat of features) {
+                                        const rawForm = feat.system.featureForm || "passive";
+                                        // Capitalize first letter
+                                        const form = rawForm.charAt(0).toUpperCase() + rawForm.slice(1);
+                                        
+                                        // Clean description to allow inline display (remove P tags)
+                                        // Replaces <p>...</p> with the content + a space to separate from next
+                                        let cleanDesc = (feat.system.description || "").replace(/<\/?p[^>]*>/g, " ");
+                                        
+                                        featuresHtml += `
+                                            <div class="dh-feature-row">
+                                                <img src="${feat.img}" class="dh-feature-icon" title="${form}">
+                                                <span class="dh-feature-text">
+                                                    <strong>[${form}] ${feat.name}:</strong> 
+                                                    ${cleanDesc}
+                                                </span>
+                                            </div>
+                                        `;
+                                    }
+                                }
+                            }
+                        }
+
                         const imgHtml = (item.img && item.img !== "icons/svg/mystery-man.svg") 
-                            ? `<div style="text-align: center; margin-top: 15px;"><img src="${item.img}" style="max-height: 300px; border: 0; vertical-align: middle;" data-tooltip="${item.name}"></div>` 
+                            ? `<div class="dh-img-container"><img src="${item.img}" class="dh-item-img" data-tooltip="${item.name}"></div>` 
                             : "";
                         
                         const buttonHtml = `
@@ -743,7 +808,10 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         
                         const pageContent = `
                             <h1>${item.name}</h1>
+                            ${statsHtml}
                             <div class="item-description">${desc}</div>
+                            ${motivesHtml}
+                            ${featuresHtml}
                             ${buttonHtml}
                             ${imgHtml}
                         `;

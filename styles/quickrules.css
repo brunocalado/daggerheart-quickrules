@@ -112,7 +112,7 @@
     box-shadow: 0 0 5px rgba(220, 177, 93, 0.4);
 }
 
-/* UPDATED: Active Button (Light Mode) - Beige/Parchment */
+/* Active Button (Light Mode) - Beige/Parchment */
 .dh-quickrules-container.light .dh-mode-btn.active {
     background: #f2deb8; /* New Light Beige Color */
     border-color: #c9a060; /* Darker Gold Border */
@@ -432,6 +432,30 @@
     margin-bottom: 1em;
 }
 
+/* --- ADVERSARY STATS STYLING --- */
+.dh-adversary-stats {
+    font-family: 'Signika', sans-serif; 
+    font-size: 1.1em; 
+    color: #e5c377; /* Default Gold */
+    margin-bottom: 15px; 
+    border-bottom: 1px solid #444; 
+    padding-bottom: 8px;
+}
+
+.dh-stat-value {
+    color: #fff; /* Default White */
+}
+
+/* Light Mode Overrides for Stats */
+.dh-quickrules-container.light .dh-adversary-stats {
+    color: #8B6914; /* Darker Gold for Contrast */
+    border-bottom: 1px solid #ccc;
+}
+
+.dh-quickrules-container.light .dh-stat-value {
+    color: #111; /* Dark Text for Contrast */
+}
+
 /* --- FIX FOUNDRY ENTITY LINKS IN LIGHT MODE --- */
 .dh-quickrules-container.light .journal-entry-page .content-link {
     background: #f0f0f0; /* Light gray background */
@@ -526,13 +550,21 @@
     border-left: 2px solid #ccc;
 }
 
-/* Item Images in Content */
+/* Item Images in Content - CONTAINER FIX */
+.dh-img-container {
+    display: block;
+    text-align: center;
+    margin: 15px 0;
+    width: 100%;
+}
+
 .dh-item-img {
     max-width: 150px;
     border: 1px solid #555;
     border-radius: 4px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    display: inline-block;
+    /* Updated to respect parent alignment */
+    display: inline-block; 
 }
 .dh-quickrules-container.light .dh-item-img {
     border: 1px solid #ccc;
@@ -589,6 +621,41 @@
     border: none;
     background: transparent;
     box-shadow: none; /* Removed shadow as requested */
+}
+
+/* Feature List Styles */
+.dh-feature-row {
+    display: flex;
+    align-items: baseline; 
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+.dh-feature-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    border: none;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.dh-feature-text {
+    color: #fff; /* Default text color */
+}
+
+.dh-feature-text strong {
+    color: #e5c377; /* Feature Name in Gold */
+}
+
+/* Light Mode Overrides */
+.dh-quickrules-container.light .dh-feature-text {
+    color: #111;
+}
+
+.dh-quickrules-container.light .dh-feature-text strong {
+    color: #8B6914; /* Darker Gold for Light Mode */
 }
 
 /* --- Floating Button (Same for both modes) --- */
