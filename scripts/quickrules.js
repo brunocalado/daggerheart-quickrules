@@ -79,7 +79,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
 
         if (!found) {
-            const customFolder = game.folders.find(f => f.name === "📜 Custom Quick Rules" && f.type === "JournalEntry");
+            const customFolder = game.folders.find(f => f.name === "糖 Custom Quick Rules" && f.type === "JournalEntry");
             if (customFolder) {
                 for (const j of customFolder.contents) {
                     if (j.pages.has(pageId)) {
@@ -160,7 +160,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
         // Custom Content
         if (filters.custom) {
-            const customFolderName = "📜 Custom Quick Rules";
+            const customFolderName = "糖 Custom Quick Rules";
             const customFolder = game.folders.find(f => f.name === customFolderName && f.type === "JournalEntry");
             
             if (customFolder) {
@@ -442,7 +442,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
 
         if (!page) {
-            const customFolder = game.folders.find(f => f.name === "📜 Custom Quick Rules" && f.type === "JournalEntry");
+            const customFolder = game.folders.find(f => f.name === "糖 Custom Quick Rules" && f.type === "JournalEntry");
             if (customFolder) {
                 for (const journal of customFolder.contents) {
                     if (journal.pages.has(this.selectedPageId)) {
@@ -674,7 +674,10 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         if (match) {
                             const term = match[1].trim();
                             const contentHtml = li.innerHTML; 
+                            
+                            // FIX: Corrected regular expression to avoid syntax errors and handle standard/smart quotes
                             if (/^["'“]/.test(term)) continue;
+
                             const wordCount = term.split(/\s+/).length;
                             if (wordCount > 8) continue;
                             if (term.includes("@UUID") || term.includes("@Compendium")) continue;
@@ -722,6 +725,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
 
         if (mode === 'All') {
+            // --- EXISTING ITEM PROCESSING ---
             for (const packName of compendiumList) {
                 const pack = game.packs.get(packName);
                 if (!pack) continue;
@@ -866,6 +870,107 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                     console.error(`Daggerheart QuickRules | Error processing pack ${packName}:`, err);
                 }
             }
+
+            // --- LOOT TABLES PROCESSING (NEW) ---
+            try {
+                const lootTablePackName = "daggerheart-quickrules.loot-and-consumable";
+                const lootPack = game.packs.get(lootTablePackName);
+                
+                if (lootPack) {
+                    console.log(`Daggerheart QuickRules | Processing Loot Tables from ${lootTablePackName}...`);
+                    const tables = await lootPack.getDocuments();
+
+                    for (const table of tables) {
+                        let originalName = table.name;
+                        
+                        // 1. Remove Prefix "XX - " (e.g. "02 - ")
+                        let cleanName = originalName.replace(/^\d+\s*-\s*/, "");
+
+                        // 2. Invert "Part A - Part B" to "Part B - Part A"
+                        // Specifically targets patterns like "Common (2d12) - Consumable" -> "Consumable - Common (2d12)"
+                        if (cleanName.includes(" - ")) {
+                            const parts = cleanName.split(" - ");
+                            if (parts.length === 2) {
+                                cleanName = `${parts[1]} - ${parts[0]}`;
+                            }
+                        }
+                        
+                        // Build HTML Table
+                        let tableHtml = `
+                            <h1>${cleanName}</h1>
+                            <table class="dh-simple-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;">Icon</th>
+                                        <th style="width: 80px;">Range</th>
+                                        <th>Item</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+
+                        // Iterate Table Results
+                        const results = table.results.contents.sort((a, b) => a.range[0] - b.range[0]);
+
+                        for (const result of results) {
+                            const range = (result.range[0] === result.range[1]) 
+                                ? result.range[0] 
+                                : `${result.range[0]}-${result.range[1]}`;
+                            
+                            const icon = result.img || "icons/svg/mystery-man.svg";
+                            
+                            let label = result.text;
+                            
+                            // Create UUID Link if it's a document
+                            if (result.type === "document" || result.documentId) {
+                                // V13 Safe UUID construction
+                                // If result.uuid exists, use it. Otherwise construct compendium UUID
+                                let uuid = "";
+                                if (result.uuid) {
+                                    uuid = result.uuid;
+                                } else if (result.documentCollection && result.documentId) {
+                                    uuid = `Compendium.${result.documentCollection}.${result.documentId}`;
+                                }
+
+                                if (uuid) {
+                                    label = `@UUID[${uuid}]{${result.text}}`;
+                                }
+                            }
+                            // Also check if text itself is a UUID link (fallback)
+                            
+                            tableHtml += `
+                                <tr>
+                                    <td style="text-align: center;"><img src="${icon}" width="32" height="32" style="border:0;"></td>
+                                    <td style="text-align: center; font-weight: bold;">${range}</td>
+                                    <td>${label}</td>
+                                </tr>
+                            `;
+                        }
+
+                        tableHtml += `</tbody></table>`;
+                        
+                        // Add Button to open original table
+                        tableHtml += `
+                            <div style="margin-top: 20px; text-align: center; border-top: 1px solid #4b0000; padding-top: 10px;">
+                                <p>@UUID[${table.uuid}]{Open Original RollTable}</p>
+                            </div>
+                        `;
+
+                        newPagesData.push({
+                            name: cleanName,
+                            text: { content: tableHtml, format: 1 },
+                            title: { show: false, level: 1 },
+                            flags: { "daggerheart-quickrules": { sourcePack: lootTablePackName } }
+                        });
+                    }
+                } else {
+                    console.warn(`Daggerheart QuickRules | Loot Table Pack '${lootTablePackName}' not found.`);
+                }
+
+            } catch (err) {
+                 console.error("Daggerheart QuickRules | Error building Loot Tables:", err);
+            }
+
 
             // --- GENERATE SUMMARY PAGE: ADVERSARIES BY TYPE ---
             try {
