@@ -733,13 +733,69 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 try {
                     const documents = await pack.getDocuments();
                     for (const item of documents) {
-                        const desc = item.system?.description?.value || item.system?.description || "No description available.";
-                        const itemName = formatTitle(item.name);
+                        const rawDesc = item.system?.description?.value || item.system?.description || "";
+                        const desc = rawDesc || (item.type === "beastform" ? "" : "No description available.");
+                        let itemName = formatTitle(item.name);
                         
+                        // --- BEASTFORMS: PREFIX FEATURES ---
+                        if (packName === "daggerheart.beastforms" && item.type === "feature") {
+                            itemName = "Beastform Feature: " + itemName;
+                        }
+
                         // NEW: Adversary Specific Data
                         let statsHtml = "";
                         let motivesHtml = "";
                         let featuresHtml = "";
+                        let beastformHtml = "";
+
+                        // --- BEASTFORMS: MAIN ITEMS ---
+                        try {
+                            if (packName === "daggerheart.beastforms" && item.type === "beastform") {
+                                 // Add Beastform Prefix to Page Name
+                                 itemName = "Beastform: " + itemName;
+
+                                 const sys = item.system;
+                                 if (!sys) continue;
+
+                                 const tier = sys.tier || "-";
+                                 // Capitalize Trait
+                                 const rawTrait = sys.mainTrait || "-";
+                                 const trait = rawTrait.charAt(0).toUpperCase() + rawTrait.slice(1);
+                                 
+                                 // 1. Tier and Main Trait
+                                 beastformHtml = `
+                                    <div class="dh-adversary-stats">
+                                        <strong>Tier:</strong> <span class="dh-stat-value">${tier}</span> &nbsp;|&nbsp; 
+                                        <strong>Trait:</strong> <span class="dh-stat-value">${trait}</span>
+                                    </div>
+                                 `;
+
+                                 // 2. Examples
+                                 if (sys.examples) {
+                                     beastformHtml += `<p style="margin-top: 10px; font-style: italic;"><strong>Examples:</strong> ${sys.examples}</p>`;
+                                 }
+
+                                 // 3. Advantages
+                                 if (sys.advantageOn) {
+                                     // Safe extraction of advantages
+                                     let advList = "";
+                                     try {
+                                         if (typeof sys.advantageOn === 'object') {
+                                             advList = Object.values(sys.advantageOn).map(o => o.value).join(", ");
+                                         }
+                                     } catch (err) {
+                                         console.warn(`Error processing advantageOn for ${item.name}`, err);
+                                     }
+
+                                     if (advList) {
+                                          beastformHtml += `<p><strong>Advantage On:</strong> ${advList}</p>`;
+                                     }
+                                 }
+                            }
+                        } catch (beastErr) {
+                            console.error(`Daggerheart QuickRules | Error processing Beastform ${item.name}:`, beastErr);
+                            // Continue to next item without breaking the build
+                        }
 
                         // ADVERSARIES
                         if (packName === "daggerheart.adversaries") {
@@ -853,6 +909,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         const pageContent = `
                             <h1>${item.name}</h1>
                             ${statsHtml}
+                            ${beastformHtml}
                             <div class="item-description">${desc}</div>
                             ${motivesHtml}
                             ${featuresHtml}
