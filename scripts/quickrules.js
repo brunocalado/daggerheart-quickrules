@@ -866,6 +866,53 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                     console.error(`Daggerheart QuickRules | Error processing pack ${packName}:`, err);
                 }
             }
+
+            // --- GENERATE SUMMARY PAGE: ADVERSARIES BY TYPE ---
+            try {
+                const advPack = game.packs.get("daggerheart.adversaries");
+                if (advPack) {
+                    const docs = await advPack.getDocuments();
+                    const grouped = {};
+                    
+                    docs.forEach(d => {
+                        let t = d.system.type || "Other";
+                        t = t.charAt(0).toUpperCase() + t.slice(1);
+                        if (!grouped[t]) grouped[t] = [];
+                        grouped[t].push(d);
+                    });
+                    
+                    const sortedKeys = Object.keys(grouped).sort();
+                    // REMOVED DATE GENERATION
+                    let summaryHtml = `<h1>Adversaries by Type</h1>`;
+                    
+                    sortedKeys.forEach(type => {
+                        summaryHtml += `<h2>${type}</h2><ul>`;
+                        // Sort by Tier (Asc), then Name
+                        grouped[type].sort((a, b) => {
+                            const tierA = Number(a.system.tier) || 0;
+                            const tierB = Number(b.system.tier) || 0;
+                            if (tierA !== tierB) return tierA - tierB;
+                            return a.name.localeCompare(b.name);
+                        });
+                        
+                        grouped[type].forEach(adv => {
+                            const tier = adv.system.tier ?? "?";
+                            // Use ID from compendium
+                            summaryHtml += `<li>@Compendium[daggerheart.adversaries.${adv.id}]{${adv.name}} - Tier ${tier}</li>`;
+                        });
+                        summaryHtml += `</ul>`;
+                    });
+                    
+                    newPagesData.push({
+                        name: "Adversaries by Type",
+                        text: { content: summaryHtml, format: 1 },
+                        title: { show: false, level: 1 },
+                        flags: { "daggerheart-quickrules": { sourcePack: "daggerheart.adversaries" } }
+                    });
+                }
+            } catch (e) {
+                console.error("Daggerheart QuickRules | Error building Adversary List:", e);
+            }
         }
 
         if (newPagesData.length > 0) {

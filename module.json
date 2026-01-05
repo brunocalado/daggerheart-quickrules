@@ -61,7 +61,19 @@
         "ASSISTANT": "OWNER"
       },
       "flags": {}
-    }     
+    },
+    {
+      "label": "Loot and Consumable",
+      "type": "RollTable",
+      "name": "loot-and-consumable",
+      "path": "packs/loot-and-consumable",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    }    
   ],
 
   "packFolders": [
@@ -71,7 +83,8 @@
       "color": "#5c0547",
       "packs": [        
         "quickrules",
-        "macros"
+        "macros",
+        "loot-and-consumable"
       ],
       "folders": []
     }
