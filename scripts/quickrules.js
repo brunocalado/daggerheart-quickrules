@@ -1021,25 +1021,11 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             
                             let label = result.name;
                             
-                            // Create UUID Link if it's a document (type === 1 or "document")
-                            if (result.type === "document" || result.type === 1 || result.documentId) {
-                                let uuid = "";
-                                
-                                // FIX: Prioritize the LINKED document UUID, not the TableResult UUID
-                                // Use documentCollection and documentId from the result
-                                if (result.documentCollection && result.documentId) {
-                                    uuid = `Compendium.${result.documentCollection}.${result.documentId}`;
-                                } else if (result.documentId) {
-                                    // Fallback if no collection (e.g. world item, though unlikely here)
-                                    // We assume Item class if not specified
-                                    uuid = `Item.${result.documentId}`;
-                                } else if (result.uuid && !result.uuid.includes("TableResult")) {
-                                     // Last resort fallback if uuid exists and is NOT a TableResult uuid
-                                     uuid = result.uuid;
-                                }
-
-                                if (uuid) {
-                                    label = `@UUID[${uuid}]{${result.name}}`;
+                            // Modern Foundry v13+ approach: Use documentUuid directly
+                            if (result.type === "document" || result.type === 1) {
+                                // Use the documentUuid property which contains the full UUID path
+                                if (result.documentUuid) {
+                                    label = `@UUID[${result.documentUuid}]{${result.name}}`;
                                 }
                             }
                             

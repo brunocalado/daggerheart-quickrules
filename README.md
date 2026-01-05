@@ -4,7 +4,9 @@
 
 **Instant Rule Reference for Foundry VTT**
 
-<p align="center"><img width="750" src="docs/preview.webp" alt="Preview"></p>
+<p align="center"><img width="900" src="docs/preview-w.webp" alt="White Mode"></p>
+
+<p align="center"><img width="900" src="docs/preview-d.webp" alt="Dark Mode"></p>
 
 Access the Daggerheart rules and your own custom notes instantly without cluttering your screen.
 
@@ -17,6 +19,8 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 * **Keyboard Shortcut:** Press `Shift + D` to toggle the window instantly.
 
 * **Sidebar Integration:** Adds a convenient "Open Guide" button to the Daggerheart System Menu.
+
+<p align="center"><img width="900" src="docs/buttons.webp" alt="Buttons"></p>
 
 ### 📖 Enhanced Reading Experience
 
@@ -41,6 +45,8 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 2. Click the **Floating `?` Button** on your screen.
 
 3. Or go to the **Daggerheart Menu** (Sidebar) and click **Open Guide**.
+
+<p align="center"><img width="900" src="docs/buttons.webp" alt="Buttons"></p>
 
 ### Managing Content
 
