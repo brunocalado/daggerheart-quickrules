@@ -508,6 +508,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         ];
 
         console.log(`Daggerheart QuickRules | Build Started (${mode}).`);
+        ui.notifications.info(`Daggerheart QuickRules | Build Started (${mode}). Please wait...`);
 
         const sourcePack = game.packs.get(sourceCompendiumName);
         if (!sourcePack) {

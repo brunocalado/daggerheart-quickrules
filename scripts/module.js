@@ -87,7 +87,7 @@ Hooks.once("init", () => {
         }
     };
     
-    console.log("Daggerheart Quick Rules | Commands QuickRules.Open(), QuickRules.Build(mode), and QuickRules.Reset() registered.");
+    // Console log removido conforme solicitado
 });
 
 /**

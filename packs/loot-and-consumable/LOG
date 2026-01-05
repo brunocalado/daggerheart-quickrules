@@ -1,15 +1,8 @@
-2026/01/05-15:09:05.110 4bc8 Recovering log #1476
-2026/01/05-15:09:05.114 4bc8 Delete type=0 #1476
-2026/01/05-15:09:05.114 4bc8 Delete type=3 #1474
-2026/01/05-15:13:20.494 1c14 Level-0 table #1482: started
-2026/01/05-15:13:20.495 1c14 Level-0 table #1482: 11487 bytes OK
-2026/01/05-15:13:20.496 1c14 Delete type=0 #1480
-2026/01/05-15:13:20.498 1c14 Manual compaction at level-0 from '!folders!dousJfk7rEI7CcMI' @ 72057594037927935 : 1 .. '!tables.results!yB2G2a4HywOTva2P.yQzaMwuAteX4mq7n' @ 0 : 0; will stop at (end)
-2026/01/05-15:13:20.530 1c14 Manual compaction at level-1 from '!folders!dousJfk7rEI7CcMI' @ 72057594037927935 : 1 .. '!tables.results!yB2G2a4HywOTva2P.yQzaMwuAteX4mq7n' @ 0 : 0; will stop at '!tables.results!zM2wywpaT5JVopvY.sNWPyik7P8SSLJll' @ 2212 : 0
-2026/01/05-15:13:20.530 1c14 Compacting 1@1 + 1@2 files
-2026/01/05-15:13:20.533 1c14 Generated table #1483@1: 720 keys, 129408 bytes
-2026/01/05-15:13:20.533 1c14 Compacted 1@1 + 1@2 files => 129408 bytes
-2026/01/05-15:13:20.534 1c14 compacted to: files[ 0 0 1 0 0 0 0 ]
-2026/01/05-15:13:20.534 1c14 Delete type=2 #1478
-2026/01/05-15:13:20.535 1c14 Delete type=2 #1482
-2026/01/05-15:13:20.535 1c14 Manual compaction at level-1 from '!tables.results!zM2wywpaT5JVopvY.sNWPyik7P8SSLJll' @ 2212 : 0 .. '!tables.results!yB2G2a4HywOTva2P.yQzaMwuAteX4mq7n' @ 0 : 0; will stop at (end)
+2026/01/05-15:13:31.906 ac0 Recovering log #1481
+2026/01/05-15:13:31.910 ac0 Delete type=0 #1481
+2026/01/05-15:13:31.910 ac0 Delete type=3 #1479
+2026/01/05-15:28:30.773 1c14 Level-0 table #1487: started
+2026/01/05-15:28:30.773 1c14 Level-0 table #1487: 0 bytes OK
+2026/01/05-15:28:30.774 1c14 Delete type=0 #1485
+2026/01/05-15:28:30.776 1c14 Manual compaction at level-0 from '!folders!dousJfk7rEI7CcMI' @ 72057594037927935 : 1 .. '!tables.results!yB2G2a4HywOTva2P.yQzaMwuAteX4mq7n' @ 0 : 0; will stop at (end)
+2026/01/05-15:28:30.778 1c14 Manual compaction at level-1 from '!folders!dousJfk7rEI7CcMI' @ 72057594037927935 : 1 .. '!tables.results!yB2G2a4HywOTva2P.yQzaMwuAteX4mq7n' @ 0 : 0; will stop at (end)
