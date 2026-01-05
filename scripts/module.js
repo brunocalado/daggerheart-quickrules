@@ -44,7 +44,7 @@ Hooks.once("init", () => {
     });
 
     // 3. COMMUNICATION CHANNEL (Reactive Setting Pattern)
-    // This replaces the socket approach. When this setting changes, it runs _handleForceOpenRequest on all clients.
+    // When this setting changes, it runs _handleForceOpenRequest on all clients.
     game.settings.register(MODULE_ID, "forceOpenRequest", {
         scope: "world",
         config: false,
@@ -53,7 +53,23 @@ Hooks.once("init", () => {
         onChange: _handleForceOpenRequest
     });
 
-    // 4. Expose Global Commands
+    // 4. Register Keybinding (Shift + D)
+    game.keybindings.register(MODULE_ID, "toggleQuickRules", {
+        name: "Toggle Quick Rules",
+        hint: "Open or close the Quick Rules window.",
+        editable: [
+            { key: "KeyD", modifiers: ["Shift"] }
+        ],
+        onDown: () => {
+            // Open if closed, Close if open
+            window.QuickRules.Toggle();
+            return true; // Consumes the event
+        },
+        restricted: false, // Available to all users, not just GM
+        precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
+    });
+
+    // 5. Expose Global Commands
     window.QuickRules = {
         Open: () => {
             const module = game.modules.get(MODULE_ID);
@@ -63,11 +79,27 @@ Hooks.once("init", () => {
                 module.api = new DaggerheartQuickRules();
             }
             
-            // V13/ApplicationV2 syntax
+            // Render the application
             module.api.render({ force: true });
         },
+
+        // Toggle method for the Keybinding
+        Toggle: () => {
+            const module = game.modules.get(MODULE_ID);
+            
+            if (!module.api) {
+                module.api = new DaggerheartQuickRules();
+            }
+
+            // Check if currently rendered to decide whether to close or open
+            if (module.api.rendered) {
+                module.api.close();
+            } else {
+                module.api.render({ force: true });
+            }
+        },
         
-        // UPDATED: Default mode is now 'All' instead of 'standard'
+        // Build the SRD content. Default mode is 'All'
         Build: async (mode = 'All') => {
              if (!game.user.isGM) {
                  ui.notifications.warn("Only the GM can build the SRD content.");
@@ -86,8 +118,6 @@ Hooks.once("init", () => {
             ui.notifications.info("Daggerheart Quick Rules | Floating button position reset to default.");
         }
     };
-    
-    // Console log removido conforme solicitado
 });
 
 /**
@@ -110,11 +140,11 @@ function _handleForceOpenRequest(value) {
         module.api = new DaggerheartQuickRules();
     }
     
-    // 2. Call Intelligent Navigation
-    // This method sets selectedPageId AND switches contexts if needed
+    // 2. Navigate to the specific page
+    // This method sets selectedPageId and switches contexts if needed
     module.api.forceNavigateToPage(value.pageId);
 
-    // Optional: If minimized, maximize it
+    // If minimized, maximize it
     if (module.api.minimized) module.api.maximize();
 
     ui.notifications.info("GM updated Quick Rules view.");

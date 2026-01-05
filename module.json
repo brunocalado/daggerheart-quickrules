@@ -78,10 +78,10 @@
       "system": "daggerheart",
       "ownership": {
         "PLAYER": "OBSERVER",
-        "ASSISTANT": "OWNER",
-      "banner": "modules/daggerheart-quickrules/assets/images/banner.webp" 
+        "ASSISTANT": "OWNER"
       },
-      "flags": {}
+      "flags": {},
+      "banner": "modules/daggerheart-quickrules/assets/images/banner.webp" 
     }    
   ],
 

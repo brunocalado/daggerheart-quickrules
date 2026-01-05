@@ -26,7 +26,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             controls: []
         },
         position: {
-            width: 1050, // Updated width
+            width: 1050,
             height: 750
         },
         actions: {
@@ -79,7 +79,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
 
         if (!found) {
-            const customFolder = game.folders.find(f => f.name === "糖 Custom Quick Rules" && f.type === "JournalEntry");
+            const customFolder = game.folders.find(f => f.name === "📜 Custom Quick Rules" && f.type === "JournalEntry");
             if (customFolder) {
                 for (const j of customFolder.contents) {
                     if (j.pages.has(pageId)) {
@@ -160,7 +160,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
         // Custom Content
         if (filters.custom) {
-            const customFolderName = "糖 Custom Quick Rules";
+            const customFolderName = "📜 Custom Quick Rules";
             const customFolder = game.folders.find(f => f.name === customFolderName && f.type === "JournalEntry");
             
             if (customFolder) {
@@ -442,7 +442,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
 
         if (!page) {
-            const customFolder = game.folders.find(f => f.name === "糖 Custom Quick Rules" && f.type === "JournalEntry");
+            const customFolder = game.folders.find(f => f.name === "📜 Custom Quick Rules" && f.type === "JournalEntry");
             if (customFolder) {
                 for (const journal of customFolder.contents) {
                     if (journal.pages.has(this.selectedPageId)) {
@@ -676,7 +676,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             const term = match[1].trim();
                             const contentHtml = li.innerHTML; 
                             
-                            // FIX: Corrected regular expression to avoid syntax errors and handle standard/smart quotes
+                            // Regex to handle standard and smart quotes
                             if (/^["'“]/.test(term)) continue;
 
                             const wordCount = term.split(/\s+/).length;
@@ -737,7 +737,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         const desc = rawDesc || (item.type === "beastform" ? "" : "No description available.");
                         let itemName = formatTitle(item.name);
                         
-                        // --- BOOK OF... DOMAINS LOGIC (NEW) ---
+                        // --- BOOK OF... DOMAINS LOGIC ---
                         if (packName === "daggerheart.domains" && item.name.includes("Book of")) {
                             try {
                                 const parser = new DOMParser();
@@ -784,7 +784,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             itemName = "Beastform Feature: " + itemName;
                         }
 
-                        // NEW: Adversary Specific Data
+                        // Adversary Specific Data
                         let statsHtml = "";
                         let motivesHtml = "";
                         let featuresHtml = "";
@@ -890,7 +890,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             }
                         }
 
-                        // ENVIRONMENTS (New Logic)
+                        // ENVIRONMENTS
                         if (packName === "daggerheart.environments") {
                             const sys = item.system;
                             const tier = sys.tier ?? "-";
@@ -971,7 +971,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 }
             }
 
-            // --- LOOT TABLES PROCESSING (NEW) ---
+            // --- LOOT TABLES PROCESSING ---
             try {
                 const lootTablePackName = "daggerheart-quickrules.loot-and-consumable";
                 const lootPack = game.packs.get(lootTablePackName);
@@ -1021,22 +1021,27 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             
                             let label = result.name;
                             
-                            // Create UUID Link if it's a document
-                            if (result.type === "document" || result.documentId) {
-                                // V13 Safe UUID construction
-                                // If result.uuid exists, use it. Otherwise construct compendium UUID
+                            // Create UUID Link if it's a document (type === 1 or "document")
+                            if (result.type === "document" || result.type === 1 || result.documentId) {
                                 let uuid = "";
-                                if (result.uuid) {
-                                    uuid = result.uuid;
-                                } else if (result.documentCollection && result.documentId) {
+                                
+                                // FIX: Prioritize the LINKED document UUID, not the TableResult UUID
+                                // Use documentCollection and documentId from the result
+                                if (result.documentCollection && result.documentId) {
                                     uuid = `Compendium.${result.documentCollection}.${result.documentId}`;
+                                } else if (result.documentId) {
+                                    // Fallback if no collection (e.g. world item, though unlikely here)
+                                    // We assume Item class if not specified
+                                    uuid = `Item.${result.documentId}`;
+                                } else if (result.uuid && !result.uuid.includes("TableResult")) {
+                                     // Last resort fallback if uuid exists and is NOT a TableResult uuid
+                                     uuid = result.uuid;
                                 }
 
                                 if (uuid) {
                                     label = `@UUID[${uuid}]{${result.name}}`;
                                 }
                             }
-                            // Also check if text itself is a UUID link (fallback)
                             
                             tableHtml += `
                                 <tr>
@@ -1087,7 +1092,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                     });
                     
                     const sortedKeys = Object.keys(grouped).sort();
-                    // REMOVED DATE GENERATION
+                    
                     let summaryHtml = `<h1>Adversaries by Type</h1>`;
                     
                     sortedKeys.forEach(type => {

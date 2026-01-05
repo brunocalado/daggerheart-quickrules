@@ -1,10 +1,10 @@
 # 📜 Daggerheart: Quick Rules 📜
 
-<p align="center"><img width="900" src="assets/images/avatar.webp"></p>
+<p align="center"><img width="900" src="assets/images/avatar.webp" alt="Avatar"></p>
 
 **Instant Rule Reference for Foundry VTT**
 
-<p align="center"><img width="750" src="docs/preview.webp"></p>
+<p align="center"><img width="750" src="docs/preview.webp" alt="Preview"></p>
 
 Access the Daggerheart rules and your own custom notes instantly without cluttering your screen.
 
@@ -13,6 +13,8 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 ### ⚡ Instant Access
 
 * **Floating Button:** A draggable `?` button stays on your canvas for one-click access.
+
+* **Keyboard Shortcut:** Press `Shift + D` to toggle the window instantly.
 
 * **Sidebar Integration:** Adds a convenient "Open Guide" button to the Daggerheart System Menu.
 
@@ -34,9 +36,11 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 
 ### Opening the Rules
 
-1. Click the **Floating `?` Button** on your screen.
+1. Press **Shift + D** on your keyboard.
 
-2. Or go to the **Daggerheart Menu** (Sidebar) and click **Open Guide**.
+2. Click the **Floating `?` Button** on your screen.
+
+3. Or go to the **Daggerheart Menu** (Sidebar) and click **Open Guide**.
 
 ### Managing Content
 

@@ -114,7 +114,7 @@
 
 /* Active Button (Light Mode) - Beige/Parchment */
 .dh-quickrules-container.light .dh-mode-btn.active {
-    background: #f2deb8; /* New Light Beige Color */
+    background: #f2deb8; /* Light Beige Color */
     border-color: #c9a060; /* Darker Gold Border */
     color: #111111; /* Black Text for Contrast */
     box-shadow: 0 0 5px rgba(201, 160, 96, 0.4);
@@ -376,7 +376,7 @@
     scrollbar-width: thin;
     scrollbar-color: #dcb15d #141414;
     
-    /* ENABLE TEXT SELECTION - CRITICAL UPDATE */
+    /* Enable text selection */
     user-select: text; 
 }
 .dh-quickrules-container.light .journal-entry-page {
@@ -403,7 +403,7 @@
     font-family: "Modesto Condensed", serif;
     margin-top: 20px;
 }
-/* UPDATED: Unified H2 color for light mode */
+/* Unified H2 color for light mode */
 .dh-quickrules-container.light .journal-entry-page h2 {
     color: #8B6914; 
     border-bottom: 1px solid #dcb15d;
@@ -414,7 +414,7 @@
     color: #C9A060;
     margin-top: 15px;
 }
-/* UPDATED: Unified H3/H4 color for light mode */
+/* Unified H3/H4 color for light mode */
 .dh-quickrules-container.light .journal-entry-page h3, 
 .dh-quickrules-container.light .journal-entry-page h4 {
     color: #8B6914;
@@ -458,7 +458,7 @@
     color: #111; /* Dark Text for Contrast */
 }
 
-/* --- FIX FOUNDRY ENTITY LINKS IN LIGHT MODE --- */
+/* --- FOUNDRY ENTITY LINKS IN LIGHT MODE --- */
 .dh-quickrules-container.light .journal-entry-page .content-link {
     background: #f0f0f0; /* Light gray background */
     border: 1px solid #ccc;
@@ -514,7 +514,7 @@
     margin: 0;
 }
 
-/* --- NEW SIMPLE TABLE STYLES (Used for Loot Tables) --- */
+/* --- SIMPLE TABLE STYLES (Used for Loot Tables) --- */
 .dh-simple-table {
     border-collapse: collapse;
     width: 100%;
@@ -599,7 +599,7 @@
     border-left: 2px solid #ccc;
 }
 
-/* Item Images in Content - CONTAINER FIX */
+/* Item Images in Content Container */
 .dh-img-container {
     display: block;
     text-align: center;
@@ -612,7 +612,7 @@
     border: 1px solid #555;
     border-radius: 4px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    /* Updated to respect parent alignment */
+    /* Respect parent alignment */
     display: inline-block; 
 }
 .dh-quickrules-container.light .dh-item-img {
@@ -661,7 +661,7 @@
     opacity: 0.8;
 }
 
-/* UPDATED: Removed borders and background for empty state image */
+/* No borders and background for empty state image */
 .dh-empty-state-img {
     max-width: 80%; /* Takes up window width nicely */
     opacity: 0.9; 
@@ -669,7 +669,7 @@
     height: auto;
     border: none;
     background: transparent;
-    box-shadow: none; /* Removed shadow as requested */
+    box-shadow: none; /* No shadow */
 }
 
 /* Feature List Styles */
@@ -680,8 +680,6 @@
     font-size: 0.95em;
     line-height: 1.4;
 }
-
-/* REMOVED .dh-feature-icon since it is no longer used */
 
 .dh-feature-text {
     color: #fff; /* Default text color */
