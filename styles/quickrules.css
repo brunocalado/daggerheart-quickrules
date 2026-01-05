@@ -432,6 +432,29 @@
     margin-bottom: 1em;
 }
 
+/* --- FIX FOUNDRY ENTITY LINKS IN LIGHT MODE --- */
+.dh-quickrules-container.light .journal-entry-page .content-link {
+    background: #f0f0f0; /* Light gray background */
+    border: 1px solid #ccc;
+    color: #1a1a1a; /* Dark text */
+    padding: 1px 4px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.dh-quickrules-container.light .journal-entry-page .content-link i {
+    color: #444; /* Dark icon */
+    margin-right: 3px;
+}
+
+/* Hover state for entity links */
+.dh-quickrules-container.light .journal-entry-page .content-link:hover {
+    text-shadow: none;
+    background: #e5e5e5;
+    border-color: #8B6914; /* Theme accent */
+    color: #000;
+}
+
 /* --- TABLE STYLING FOR LIGHT MODE --- */
 .dh-quickrules-container.light .journal-entry-page table {
     border-collapse: collapse;

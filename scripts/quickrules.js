@@ -20,13 +20,13 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         tag: "form",
         classes: ["daggerheart-quickrules-window"], 
         window: {
-            title: "Daggerheart: Quick Rules", // UPDATED TITLE
+            title: "Daggerheart: Quick Rules", 
             icon: "fas fa-book-open",
             resizable: true,
             controls: []
         },
         position: {
-            width: 1200, 
+            width: 1050, // REDUCED WIDTH (Side bar stays fixed, content shrinks)
             height: 750
         },
         actions: {
@@ -135,7 +135,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     /** @override */
     async _prepareContext(options) {
         // --- THEME ---
-        // UPDATED DEFAULT: 'light'
         const theme = game.user.getFlag("daggerheart-quickrules", "theme") || "light";
 
         // --- FILTER CONFIGURATION ---
@@ -162,7 +161,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         // Custom Content
         if (filters.custom) {
             const customFolderName = "📜 Custom Quick Rules";
-            const customFolder = game.folders.find(f => f.name === customFolderName && f.type === "JournalEntry");
+            const customFolder = game.folders.find(f => f.name === "📜 Custom Quick Rules" && f.type === "JournalEntry");
             
             if (customFolder) {
                 const customJournals = customFolder.contents; 
@@ -327,7 +326,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
     static async _onToggleTheme(event, target) {
         event.preventDefault();
-        // UPDATED DEFAULT: 'light'
         const currentTheme = game.user.getFlag("daggerheart-quickrules", "theme") || "light";
         const newTheme = currentTheme === "dark" ? "light" : "dark";
         await game.user.setFlag("daggerheart-quickrules", "theme", newTheme);
