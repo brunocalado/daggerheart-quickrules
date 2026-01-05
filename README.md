@@ -20,7 +20,7 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 
 * **Sidebar Integration:** Adds a convenient "Open Guide" button to the Daggerheart System Menu.
 
-<p align="center"><img width="900" src="docs/buttons.webp" alt="Buttons"></p>
+<p align="center"><img width="400" src="docs/buttons.webp" alt="Buttons"></p>
 
 ### 📖 Enhanced Reading Experience
 
@@ -46,7 +46,9 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 
 3. Or go to the **Daggerheart Menu** (Sidebar) and click **Open Guide**.
 
-<p align="center"><img width="900" src="docs/buttons.webp" alt="Buttons"></p>
+4. You can also use a macro `QuickRules.Open();`. 
+
+<p align="center"><img width="400" src="docs/buttons.webp" alt="Buttons"></p>
 
 ### Managing Content
 
