@@ -919,7 +919,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             
                             const icon = result.img || "icons/svg/mystery-man.svg";
                             
-                            let label = result.text;
+                            let label = result.name;
                             
                             // Create UUID Link if it's a document
                             if (result.type === "document" || result.documentId) {
@@ -933,7 +933,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                                 }
 
                                 if (uuid) {
-                                    label = `@UUID[${uuid}]{${result.text}}`;
+                                    label = `@UUID[${uuid}]{${result.name}}`;
                                 }
                             }
                             // Also check if text itself is a UUID link (fallback)
