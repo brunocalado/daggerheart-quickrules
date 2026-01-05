@@ -38,7 +38,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             changeFontSize: DaggerheartQuickRules._onChangeFontSize,
             toggleFilter: DaggerheartQuickRules._onToggleFilter,
             toggleTheme: DaggerheartQuickRules._onToggleTheme,
-            forceOpen: DaggerheartQuickRules._onForceOpen
+            forceOpen: DaggerheartQuickRules._onForceOpen,
+            clearSearch: DaggerheartQuickRules._onClearSearch // NEW ACTION
         }
     };
 
@@ -192,7 +193,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             nextPageId: null,
             hasRuleOrder: false,
             prevRuleId: null,
-            nextRuleId: null
+            nextRuleId: null,
+            searchQuery: this.searchQuery // Pass search query to restore value
         };
 
         if (pages.length === 0) {
@@ -293,6 +295,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 this.searchQuery = event.target.value; 
                 this._filterList(this.searchQuery);
             });
+            // Only focus if there is a query, to prevent annoying jumps on normal render
             if (this.searchQuery) searchInput.focus(); 
         }
     }
@@ -428,6 +431,21 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             time: Date.now() 
         });
         ui.notifications.info("Daggerheart Quick Rules | Showing page to all players.");
+    }
+
+    static async _onClearSearch(event, target) {
+        event.preventDefault();
+        this.searchQuery = "";
+        
+        // Find input directly in DOM if possible to update immediately without full re-render
+        const searchInput = this.element.querySelector('.dh-search-input');
+        if (searchInput) {
+            searchInput.value = "";
+            searchInput.focus();
+        }
+        
+        // Re-run filter logic
+        this._filterList("");
     }
 
     static async _onSharePage(event, target) {

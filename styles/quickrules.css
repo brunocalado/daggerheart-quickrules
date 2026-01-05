@@ -121,14 +121,17 @@
     font-weight: bold;
 }
 
-/* Search Input */
+/* Search Input Container - UPDATED */
 .dh-search-container {
     position: relative;
     width: 100%;
+    margin-top: 4px;
+    display: flex;
+    gap: 4px; /* Space between input and button */
 }
 
 .dh-search-input {
-    width: 100%;
+    flex: 1; /* Take remaining space */
     background: rgba(0,0,0,0.3);
     border: 1px solid #444;
     color: #fff;
@@ -140,6 +143,16 @@
 .dh-search-input:focus {
     border-color: #dcb15d;
     box-shadow: 0 0 5px rgba(220, 177, 93, 0.5);
+}
+
+/* Search Clear Button - NEW */
+.dh-clear-btn {
+    flex: 0 0 30px; /* Square fixed width */
+    height: 30px;   /* Match input height approx */
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Search Input Light Mode */

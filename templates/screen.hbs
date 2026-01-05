@@ -39,9 +39,15 @@
                 </div>
             </div>
 
-            {{!-- Search --}}
-            <div class="dh-search-container" style="margin-top: 4px;">
-                <input type="text" class="dh-search-input" placeholder="Search pages..." autocomplete="off">
+            {{!-- Search Row with Clear Button --}}
+            <div class="dh-search-container">
+                <input type="text" class="dh-search-input" placeholder="Search pages..." autocomplete="off" value="{{searchQuery}}">
+                
+                <button type="button" class="dh-mode-btn square-btn dh-clear-btn" 
+                        data-action="clearSearch" 
+                        data-tooltip="Clear Search">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         </div>
         
