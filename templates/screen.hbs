@@ -80,30 +80,33 @@
         {{#if activeContent}}
             <div class="dh-content-controls">
                 
-                {{!-- NAVIGATION PREV --}}
-                {{#if prevPageId}}
-                <button type="button" class="dh-control-btn" data-action="navigatePage" data-page-id="{{prevPageId}}" title="Previous Page">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                {{else}}
-                <button type="button" class="dh-control-btn disabled" disabled style="opacity: 0.5; cursor: default;">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
+                {{!-- SEQUENTIAL BOOK ORDER NAVIGATION (ONLY THIS ONE REMAINS) --}}
+                {{#if hasRuleOrder}}
+                    {{#if prevRuleId}}
+                    <button type="button" class="dh-control-btn" data-action="navigatePage" data-page-id="{{prevRuleId}}" title="Previous Rule (Book Order)">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    {{else}}
+                    <button type="button" class="dh-control-btn disabled" disabled style="opacity: 0.5; cursor: default;">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    {{/if}}
+
+                    {{#if nextRuleId}}
+                    <button type="button" class="dh-control-btn" data-action="navigatePage" data-page-id="{{nextRuleId}}" title="Next Rule (Book Order)">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                    {{else}}
+                    <button type="button" class="dh-control-btn disabled" disabled style="opacity: 0.5; cursor: default;">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                    {{/if}}
+
+                    {{!-- Divider --}}
+                    <div style="width: 1px; height: 20px; background: #999; margin: 0 4px;"></div>
                 {{/if}}
 
-                {{!-- NAVIGATION NEXT --}}
-                {{#if nextPageId}}
-                <button type="button" class="dh-control-btn" data-action="navigatePage" data-page-id="{{nextPageId}}" title="Next Page">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                {{else}}
-                <button type="button" class="dh-control-btn disabled" disabled style="opacity: 0.5; cursor: default;">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                {{/if}}
-
-                {{!-- Divider --}}
-                <div style="width: 1px; height: 20px; background: #999; margin: 0 4px;"></div>
+                {{!-- REMOVED: Alphabetical List Navigation Buttons --}}
 
                 {{!-- Font Size Controls --}}
                 <button type="button" class="dh-control-btn" data-action="changeFontSize" data-direction="down" title="Decrease Text Size">

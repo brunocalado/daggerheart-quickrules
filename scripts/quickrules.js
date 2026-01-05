@@ -150,6 +150,9 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
 
         // --- FILTERING LOGIC ---
+        // Save full list for order navigation before filtering for display
+        const allSourcePages = [...pages]; 
+
         if (!useAllContent) {
             // User wants RULES ONLY. Filter based on the flag created during Build.
             pages = pages.filter(p => p.getFlag("daggerheart-quickrules", "type") === "rule");
@@ -184,8 +187,12 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             useAllContent: useAllContent,
             targetJournalName: targetJournalName,
             isGM: game.user.isGM,
-            prevPageId: null, // For Navigation
-            nextPageId: null  // For Navigation
+            prevPageId: null, // For Navigation (Alphabetical)
+            nextPageId: null, // For Navigation (Alphabetical)
+            // NEW: Sequential Book Order Context
+            hasRuleOrder: false,
+            prevRuleId: null,
+            nextRuleId: null
         };
 
         if (pages.length === 0) {
@@ -213,7 +220,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         // Sort alphabetically to match the Sidebar List
         pages.sort((a, b) => a.name.localeCompare(b.name));
 
-        // --- Determine Next/Prev Pages ---
+        // --- Determine Next/Prev Pages (Alphabetical) ---
         if (this.selectedPageId) {
             const currentIndex = pages.findIndex(p => p.id === this.selectedPageId);
             if (currentIndex !== -1) {
@@ -222,6 +229,27 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 }
                 if (currentIndex < pages.length - 1) {
                     context.nextPageId = pages[currentIndex + 1].id;
+                }
+            }
+
+            // --- Determine Next/Prev Pages (Sequential Book Order) ---
+            // We search in the FULL source list (allSourcePages) because next/prev might be filtered out in UI
+            // but we still want to navigate to it if requested (or stick to visible ones? 
+            // For "Book Order" usually you want the absolute next page in the book).
+            const currentPageObj = allSourcePages.find(p => p.id === this.selectedPageId);
+            if (currentPageObj) {
+                const currentOrder = currentPageObj.getFlag("daggerheart-quickrules", "order");
+                
+                if (Number.isInteger(currentOrder)) {
+                    context.hasRuleOrder = true;
+                    
+                    // Find page with order - 1
+                    const pPrev = allSourcePages.find(p => p.getFlag("daggerheart-quickrules", "order") === currentOrder - 1);
+                    if (pPrev) context.prevRuleId = pPrev.id;
+
+                    // Find page with order + 1
+                    const pNext = allSourcePages.find(p => p.getFlag("daggerheart-quickrules", "order") === currentOrder + 1);
+                    if (pNext) context.nextRuleId = pNext.id;
                 }
             }
         }
@@ -584,6 +612,9 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
         const pages = sourceJournal.pages.contents.sort((a, b) => a.sort - b.sort);
 
+        // --- NEW: Rule Ordering Counter ---
+        let ruleIndex = 1;
+
         for (const page of pages) {
             if (page.type !== "text") continue;
             const content = page.text.content;
@@ -598,12 +629,12 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             let activeH2Accumulator = "";
             let activeH3Accumulator = "";
             
-            // UPDATED: ADD FLAG "type: rule" to all base pages
+            // UPDATED: ADD FLAG "type: rule" AND "order"
             newPagesData.push({
                 name: formatTitle(page.name),
                 text: { content: content, format: 1 },
                 title: { show: true, level: 1 },
-                flags: { "daggerheart-quickrules": { type: "rule" } }
+                flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
             });
 
             if (children.length === 0) continue;
@@ -620,7 +651,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         name: formatTitle(page.name) + " (Intro)",
                         text: { content: introBuffer, format: 1 },
                         title: { show: false, level: 1 },
-                        flags: { "daggerheart-quickrules": { type: "rule" } }
+                        flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
                     });
                 }
             }
@@ -680,7 +711,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             name: title,
                             text: { content: contentHtml, format: 1 },
                             title: { show: false, level: 1 },
-                            flags: { "daggerheart-quickrules": { type: "rule" } }
+                            flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
                         });
                     }
                 }
@@ -706,7 +737,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                                 name: formatTitle(term),
                                 text: { content: `<p>${contentHtml}</p>`, format: 1 },
                                 title: { show: false, level: 1 },
-                                flags: { "daggerheart-quickrules": { type: "rule" } }
+                                flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
                             });
                         }
                     }
@@ -738,7 +769,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         name: sectionTitle,
                         text: { content: sectionBuffer, format: 1 },
                         title: { show: false, level: 1 },
-                        flags: { "daggerheart-quickrules": { type: "rule" } }
+                        flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
                     });
                 }
             }
