@@ -14,16 +14,29 @@
                     Favorites
                 </button>
 
-                {{!-- Source Toggle (Square Button) --}}
-                <button type="button" class="dh-mode-btn square-btn {{#if useAllContent}}active{{/if}}" 
-                        data-action="toggleSource" 
-                        data-tooltip="{{#if useAllContent}}Source: All Content{{else}}Source: Rules Only{{/if}}">
-                    {{#if useAllContent}}
-                        <i class="fas fa-layer-group"></i>
-                    {{else}}
+                {{!-- New Source Toggles (3 Square Buttons) --}}
+                <div class="dh-filter-group" style="display: flex; gap: 4px; margin-left: 10px;">
+                    {{!-- Rules Toggle --}}
+                    <button type="button" class="dh-mode-btn square-btn {{#if filters.rules}}active{{/if}}" 
+                            data-action="toggleFilter" data-filter="rules"
+                            data-tooltip="Toggle Rules">
                         <i class="fas fa-book"></i>
-                    {{/if}}
-                </button>
+                    </button>
+
+                    {{!-- Compendiums Toggle --}}
+                    <button type="button" class="dh-mode-btn square-btn {{#if filters.compendiums}}active{{/if}}" 
+                            data-action="toggleFilter" data-filter="compendiums"
+                            data-tooltip="Toggle Compendiums">
+                        <i class="fas fa-atlas"></i>
+                    </button>
+
+                    {{!-- Custom Toggle --}}
+                    <button type="button" class="dh-mode-btn square-btn {{#if filters.custom}}active{{/if}}" 
+                            data-action="toggleFilter" data-filter="custom"
+                            data-tooltip="Toggle Custom Content">
+                        <i class="fas fa-feather-alt"></i>
+                    </button>
+                </div>
             </div>
 
             {{!-- Search --}}
@@ -66,9 +79,8 @@
                     {{#if (eq viewMode 'favorites')}}
                         No favorites yet.<br>Star items in "All" mode!
                     {{else}}
-                        Journal not found.<br>
-                        Expected: <em>{{targetJournalName}}</em><br>
-                        in compendium: <code>daggerheart-quickrules.quickrules</code>
+                        No content visible.<br>
+                        Check filters above.
                     {{/if}}
                 </li>
             {{/unless}}
