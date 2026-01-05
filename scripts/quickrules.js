@@ -797,8 +797,9 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         const desc = item.system?.description?.value || item.system?.description || "No description available.";
                         const itemName = formatTitle(item.name);
                         
+                        // UPDATED: Image Centering with DIV wrapper and cleaner style
                         const imgHtml = (item.img && item.img !== "icons/svg/mystery-man.svg") 
-                            ? `<img src="${item.img}" class="dh-item-img" data-tooltip="${item.name}">` 
+                            ? `<div style="text-align: center; margin-top: 15px;"><img src="${item.img}" style="max-height: 300px; border: 0; vertical-align: middle;" data-tooltip="${item.name}"></div>` 
                             : "";
                         
                         const buttonHtml = `
@@ -807,11 +808,12 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             </div>
                         `;
                         
+                        // UPDATED: Order swapped (Button then Image)
                         const pageContent = `
                             <h1>${item.name}</h1>
                             <div class="item-description">${desc}</div>
-                            ${imgHtml}
                             ${buttonHtml}
+                            ${imgHtml}
                         `;
                         
                         newPagesData.push({

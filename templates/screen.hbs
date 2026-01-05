@@ -80,33 +80,31 @@
         {{#if activeContent}}
             <div class="dh-content-controls">
                 
-                {{!-- SEQUENTIAL BOOK ORDER NAVIGATION (ONLY THIS ONE REMAINS) --}}
+                {{!-- SEQUENTIAL BOOK ORDER NAVIGATION --}}
                 {{#if hasRuleOrder}}
                     {{#if prevRuleId}}
-                    <button type="button" class="dh-control-btn" data-action="navigatePage" data-page-id="{{prevRuleId}}" title="Previous Rule (Book Order)">
-                        <i class="fas fa-step-backward"></i>
+                    <button type="button" class="dh-control-btn" data-action="navigatePage" data-page-id="{{prevRuleId}}" title="Previous Rule">
+                        <i class="fas fa-step-backward"></i> Prev
                     </button>
                     {{else}}
                     <button type="button" class="dh-control-btn disabled" disabled style="opacity: 0.5; cursor: default;">
-                        <i class="fas fa-step-backward"></i>
+                        <i class="fas fa-step-backward"></i> Prev
                     </button>
                     {{/if}}
 
                     {{#if nextRuleId}}
-                    <button type="button" class="dh-control-btn" data-action="navigatePage" data-page-id="{{nextRuleId}}" title="Next Rule (Book Order)">
-                        <i class="fas fa-step-forward"></i>
+                    <button type="button" class="dh-control-btn" data-action="navigatePage" data-page-id="{{nextRuleId}}" title="Next Rule">
+                        Next <i class="fas fa-step-forward"></i>
                     </button>
                     {{else}}
                     <button type="button" class="dh-control-btn disabled" disabled style="opacity: 0.5; cursor: default;">
-                        <i class="fas fa-step-forward"></i>
+                        Next <i class="fas fa-step-forward"></i>
                     </button>
                     {{/if}}
 
                     {{!-- Divider --}}
                     <div style="width: 1px; height: 20px; background: #999; margin: 0 4px;"></div>
                 {{/if}}
-
-                {{!-- REMOVED: Alphabetical List Navigation Buttons --}}
 
                 {{!-- Font Size Controls --}}
                 <button type="button" class="dh-control-btn" data-action="changeFontSize" data-direction="down" title="Decrease Text Size">
@@ -126,7 +124,7 @@
                 {{!-- GM Only: Force Open for Players --}}
                 {{#if isGM}}
                 <button type="button" class="dh-control-btn" data-action="forceOpen" title="Show to Players (Force Open)">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-users"></i> Show Players
                 </button>
                 {{/if}}
 
