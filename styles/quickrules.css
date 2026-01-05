@@ -375,6 +375,9 @@
     color: #ffffff;
     scrollbar-width: thin;
     scrollbar-color: #dcb15d #141414;
+    
+    /* ENABLE TEXT SELECTION - CRITICAL UPDATE */
+    user-select: text; 
 }
 .dh-quickrules-container.light .journal-entry-page {
     color: #111111; /* High Contrast Black */
@@ -427,6 +430,39 @@
 
 .journal-entry-page p {
     margin-bottom: 1em;
+}
+
+/* --- TABLE STYLING FOR LIGHT MODE --- */
+.dh-quickrules-container.light .journal-entry-page table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1em;
+    background: #fff; /* Ensure white background for tables */
+    border: 1px solid #ccc; /* Subtle border */
+    color: #222; /* Dark text inside tables */
+}
+
+.dh-quickrules-container.light .journal-entry-page th,
+.dh-quickrules-container.light .journal-entry-page td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    color: #111; /* Enforce dark text */
+}
+
+.dh-quickrules-container.light .journal-entry-page th {
+    background-color: #f2f2f2; /* Light gray header background */
+    font-weight: bold;
+    color: #000;
+}
+
+.dh-quickrules-container.light .journal-entry-page tr:nth-child(even) {
+    background-color: #f9f9f9; /* Zebra striping for readability */
+}
+
+/* Ensure paragraph tags inside tables don't inherit weird colors */
+.dh-quickrules-container.light .journal-entry-page td p {
+    color: #111; 
+    margin: 0;
 }
 
 /* Context/Details Box */
