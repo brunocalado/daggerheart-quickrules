@@ -18,7 +18,7 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 
 * **Keyboard Shortcut:** Press `Shift + D` to toggle the window instantly.
 
-* **Sidebar Integration:** Adds a convenient "Open Guide" button to the Daggerheart System Menu.
+* **Sidebar Integration:** Adds a convenient "Open Quick Rules" button to the Daggerheart System Menu.
 
 <p align="center"><img width="400" src="docs/buttons.webp" alt="Buttons"></p>
 
@@ -44,7 +44,7 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 
 2. Click the **Floating `?` Button** on your screen.
 
-3. Or go to the **Daggerheart Menu** (Sidebar) and click **Open Guide**.
+3. Or go to the **Daggerheart Menu** (Sidebar) and click **Open Quick Rules**.
 
 4. You can also use a macro `QuickRules.Open();`. 
 
