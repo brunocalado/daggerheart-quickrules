@@ -27,10 +27,10 @@ Hooks.once("init", () => {
         scope: "client",
         config: true,
         type: String,
-        choices: {
-            "normal": "Normal",
+        choices: {            
             "small": "Smaller",
-            "large": "Larger (50%)"
+            "normal": "Normal",
+            "large": "Larger"
         },
         default: "normal",
         onChange: () => {
@@ -148,7 +148,7 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
 
     const myButton = document.createElement("button");
     myButton.type = "button";
-    myButton.innerHTML = `<i class="fas fa-book-open"></i> Open Guide`; 
+    myButton.innerHTML = `<i class="fas fa-book-open"></i> Open Quick Rules`; 
     myButton.classList.add("dh-custom-btn"); 
     myButton.style.marginTop = "10px";
     myButton.style.width = "100%";
@@ -159,7 +159,7 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
     if (fieldset) {
         const newFieldset = document.createElement("fieldset");
         const legend = document.createElement("legend");
-        legend.innerText = "Reference"; 
+        legend.innerText = "Quick Rules"; 
         newFieldset.appendChild(legend);
         newFieldset.appendChild(myButton);
         fieldset.after(newFieldset);
