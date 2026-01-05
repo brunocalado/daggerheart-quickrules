@@ -1,36 +1,36 @@
-<div class="dh-quickrules-container">
+<div class="dh-quickrules-container {{theme}}">
     {{!-- Left Sidebar --}}
     <aside class="dh-quickrules-sidebar">
         <div class="dh-sidebar-header">
             {{!-- Top Row: All Buttons in one container --}}
-            <div class="dh-view-modes">
+            <div class="dh-view-modes" style="display: flex; align-items: center; gap: 4px;">
                 {{!-- Main View Toggles --}}
-                <button type="button" class="dh-mode-btn {{#if (eq viewMode 'all')}}active{{/if}}" 
-                        data-action="toggleViewMode" data-mode="all">
-                    All
-                </button>
-                <button type="button" class="dh-mode-btn {{#if (eq viewMode 'favorites')}}active{{/if}}" 
-                        data-action="toggleViewMode" data-mode="favorites">
-                    Favorites
-                </button>
+                <div class="dh-left-controls" style="display: flex; gap: 4px; flex: 1;">
+                    <button type="button" class="dh-mode-btn {{#if (eq viewMode 'all')}}active{{/if}}" 
+                            data-action="toggleViewMode" data-mode="all">
+                        All
+                    </button>
+                    <button type="button" class="dh-mode-btn {{#if (eq viewMode 'favorites')}}active{{/if}}" 
+                            data-action="toggleViewMode" data-mode="favorites">
+                        Favorites
+                    </button>
+                </div>
 
-                {{!-- New Source Toggles (3 Square Buttons) --}}
-                <div class="dh-filter-group" style="display: flex; gap: 4px; margin-left: 10px;">
-                    {{!-- Rules Toggle --}}
+                {{!-- Separator --}}
+                <div style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
+
+                {{!-- Source Toggles (3 Square Buttons - Now Inline) --}}
+                <div class="dh-filter-group" style="display: flex; gap: 2px;">
                     <button type="button" class="dh-mode-btn square-btn {{#if filters.rules}}active{{/if}}" 
                             data-action="toggleFilter" data-filter="rules"
                             data-tooltip="Toggle Rules">
                         <i class="fas fa-book"></i>
                     </button>
-
-                    {{!-- Compendiums Toggle --}}
                     <button type="button" class="dh-mode-btn square-btn {{#if filters.compendiums}}active{{/if}}" 
                             data-action="toggleFilter" data-filter="compendiums"
                             data-tooltip="Toggle Compendiums">
                         <i class="fas fa-atlas"></i>
                     </button>
-
-                    {{!-- Custom Toggle --}}
                     <button type="button" class="dh-mode-btn square-btn {{#if filters.custom}}active{{/if}}" 
                             data-action="toggleFilter" data-filter="custom"
                             data-tooltip="Toggle Custom Content">
@@ -40,7 +40,7 @@
             </div>
 
             {{!-- Search --}}
-            <div class="dh-search-container">
+            <div class="dh-search-container" style="margin-top: 4px;">
                 <input type="text" class="dh-search-input" placeholder="Search pages..." autocomplete="off">
             </div>
         </div>
@@ -133,6 +133,20 @@
                 {{!-- Divider --}}
                 <div style="width: 1px; height: 20px; background: #999; margin: 0 4px;"></div>
 
+                {{!-- Theme Toggle (MOVED HERE) --}}
+                <button type="button" class="dh-control-btn square-btn" 
+                        data-action="toggleTheme" 
+                        data-tooltip="{{#if (eq theme 'light')}}Switch to Dark Mode{{else}}Switch to Light Mode{{/if}}">
+                    {{#if (eq theme 'light')}}
+                        <i class="fas fa-moon"></i>
+                    {{else}}
+                        <i class="fas fa-sun"></i>
+                    {{/if}}
+                </button>
+
+                {{!-- NEW Divider after Theme Button --}}
+                <div style="width: 1px; height: 20px; background: #999; margin: 0 4px;"></div>
+
                 {{!-- GM Only: Force Open for Players --}}
                 {{#if isGM}}
                 <button type="button" class="dh-control-btn" data-action="forceOpen" title="Show to Players (Force Open)">
@@ -151,10 +165,10 @@
             </div>
         {{else}}
             {{!-- Empty State with Avatar --}}
-            <div style="text-align: center; color: #333; margin-top: 10%; display: flex; flex-direction: column; align-items: center;">
-                <h2 style="color: #4b0000; font-family: 'Modesto Condensed', serif; font-size: 3em;">Daggerheart</h2>
-                <h3 style="color: #8B6914; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Quick Rules</h3>
-                <p>Select a page from the list to view its contents.</p>
+            <div class="dh-empty-state-container">
+                <h2 class="dh-empty-title">Daggerheart</h2>
+                <h3 class="dh-empty-subtitle">Quick Rules</h3>
+                <p class="dh-empty-text">Select a page from the list to view its contents.</p>
                 
                 {{!-- Added Avatar Image --}}
                 <img src="modules/daggerheart-quickrules/assets/images/avatar.webp" class="dh-empty-state-img">

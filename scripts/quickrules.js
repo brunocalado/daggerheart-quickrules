@@ -20,13 +20,13 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         tag: "form",
         classes: ["daggerheart-quickrules-window"], 
         window: {
-            title: "Daggerheart Quick Rules", 
+            title: "Daggerheart: Quick Rules", // UPDATED TITLE
             icon: "fas fa-book-open",
             resizable: true,
             controls: []
         },
         position: {
-            width: 1000,
+            width: 1200, 
             height: 750
         },
         actions: {
@@ -36,7 +36,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             toggleFavorite: DaggerheartQuickRules._onToggleFavorite,
             toggleViewMode: DaggerheartQuickRules._onToggleViewMode,
             changeFontSize: DaggerheartQuickRules._onChangeFontSize,
-            toggleFilter: DaggerheartQuickRules._onToggleFilter, // NEW ACTION
+            toggleFilter: DaggerheartQuickRules._onToggleFilter,
+            toggleTheme: DaggerheartQuickRules._onToggleTheme,
             forceOpen: DaggerheartQuickRules._onForceOpen
         }
     };
@@ -122,7 +123,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             return null;
         }
 
-        // Always try to load "All" first to have maximum content available
         let journals = await pack.getDocuments({name: "Daggerheart SRD - All"});
         if (journals && journals.length > 0) return journals[0];
 
@@ -134,8 +134,11 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
     /** @override */
     async _prepareContext(options) {
+        // --- THEME ---
+        // UPDATED DEFAULT: 'light'
+        const theme = game.user.getFlag("daggerheart-quickrules", "theme") || "light";
+
         // --- FILTER CONFIGURATION ---
-        // Default: everything enabled
         const defaultFilters = { rules: true, compendiums: true, custom: true };
         const filters = game.user.getFlag("daggerheart-quickrules", "filters") ?? defaultFilters;
 
@@ -150,22 +153,13 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 const isRule = p.getFlag("daggerheart-quickrules", "type") === "rule";
                 const sourcePack = p.getFlag("daggerheart-quickrules", "sourcePack");
 
-                // If it's a Rule Page
-                if (isRule) {
-                    return filters.rules;
-                }
-                
-                // If it's a Compendium Item Page
-                if (sourcePack) {
-                    return filters.compendiums;
-                }
-
-                // Fallback (untagged pages in the journal) -> Treat as Rules
+                if (isRule) return filters.rules;
+                if (sourcePack) return filters.compendiums;
                 return filters.rules;
             });
         }
 
-        // Custom Content (Only fetch if enabled)
+        // Custom Content
         if (filters.custom) {
             const customFolderName = "📜 Custom Quick Rules";
             const customFolder = game.folders.find(f => f.name === customFolderName && f.type === "JournalEntry");
@@ -185,17 +179,15 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         const favorites = game.user.getFlag("daggerheart-quickrules", "favorites") || [];
         const fontSize = game.user.getFlag("daggerheart-quickrules", "fontSize") || 14; 
 
-        // Context for Order Navigation needs ALL Rules to link correctly even if filtered?
-        // No, we only navigate through visible rules.
-        
         const context = {
+            theme: theme, 
             hasPages: false,
             alphabetizedPages: {},
             activeContent: null,
             activePageName: "",
             viewMode: this.viewMode,
             fontSize: fontSize,
-            filters: filters, // Pass filters to template
+            filters: filters,
             isGM: game.user.isGM,
             prevPageId: null,
             nextPageId: null,
@@ -208,7 +200,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             return context;
         }
 
-        // GM Secret Filter (Hidden Packs)
+        // GM Secret Filter
         if (!game.user.isGM) {
             const hiddenPacks = ["daggerheart.adversaries", "daggerheart.environments"];
             pages = pages.filter(p => {
@@ -226,10 +218,9 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
         if (pages.length > 0) context.hasPages = true;
 
-        // Sort alphabetically
         pages.sort((a, b) => a.name.localeCompare(b.name));
 
-        // --- Determine Next/Prev Pages (Alphabetical) ---
+        // --- Determine Next/Prev Pages ---
         if (this.selectedPageId) {
             const currentIndex = pages.findIndex(p => p.id === this.selectedPageId);
             if (currentIndex !== -1) {
@@ -237,17 +228,12 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 if (currentIndex < pages.length - 1) context.nextPageId = pages[currentIndex + 1].id;
             }
 
-            // --- Determine Next/Prev Pages (Sequential Book Order) ---
-            // Only search within VISIBLE pages to avoid jumping to hidden content
             const currentPageObj = pages.find(p => p.id === this.selectedPageId);
             if (currentPageObj) {
                 const currentOrder = currentPageObj.getFlag("daggerheart-quickrules", "order");
                 
                 if (Number.isInteger(currentOrder)) {
                     context.hasRuleOrder = true;
-                    // Find closest available order (gaps might exist due to filtering)
-                    // Actually, for strict book reading, we probably want to find the exact +/- 1 regardless of filter?
-                    // Let's stick to VISIBLE pages for now to avoid confusion.
                     
                     const pPrev = pages.find(p => p.getFlag("daggerheart-quickrules", "order") === currentOrder - 1);
                     if (pPrev) context.prevRuleId = pPrev.id;
@@ -339,17 +325,21 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
     /* --- Action Handlers --- */
 
+    static async _onToggleTheme(event, target) {
+        event.preventDefault();
+        // UPDATED DEFAULT: 'light'
+        const currentTheme = game.user.getFlag("daggerheart-quickrules", "theme") || "light";
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        await game.user.setFlag("daggerheart-quickrules", "theme", newTheme);
+        this.render();
+    }
+
     static async _onToggleFilter(event, target) {
         event.preventDefault();
-        const filterName = target.dataset.filter; // "rules", "compendiums", "custom"
-        
+        const filterName = target.dataset.filter;
         const currentFilters = game.user.getFlag("daggerheart-quickrules", "filters") || { rules: true, compendiums: true, custom: true };
-        
-        // Toggle the specific filter
         currentFilters[filterName] = !currentFilters[filterName];
-
         await game.user.setFlag("daggerheart-quickrules", "filters", currentFilters);
-        
         this.scrollPos = 0;
         this.render({ force: true });
     }
@@ -447,8 +437,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         if (!this.selectedPageId) return;
 
         let page = null;
-        // Fetch Logic updated to check active filtering/sources
-        // But for sharing, we want the data regardless of filter, so we re-fetch active journal
         const currentJournal = await this._getActiveJournal();
         
         if (currentJournal && currentJournal.pages.has(this.selectedPageId)) {
@@ -475,7 +463,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         let content = await foundry.applications.ux.TextEditor.enrichHTML(page.text.content, {async: true});
         const title = page.name;
 
-        // Custom Styling for Chat
         content = content.replace(/<h([1-6])(.*?)>/gi, (match, level, attributes) => {
             return `<h${level} ${attributes} style="color: #dcb15d !important; border-bottom: 1px solid #5e4b2a; margin-top: 10px;">`;
         });
@@ -507,14 +494,9 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         });
     }
 
-    /**
-     * Builds the Split Journal FROM compendium TO compendium
-     * (Same Build Logic, kept for consistency)
-     */
     static async buildSRD(mode = 'All') {
         const sourceCompendiumName = "daggerheart.journals";
         const sourceJournalId = "uNs7ne9VCbbu5dcG";
-        
         const targetPackName = "daggerheart-quickrules.quickrules";
         const targetJournalName = (mode === 'All') ? "Daggerheart SRD - All" : "Daggerheart SRD - Rules";
         
