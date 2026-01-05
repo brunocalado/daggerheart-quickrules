@@ -241,9 +241,10 @@
     height: auto;
     border: 2px solid #E5C377;
     border-radius: 8px;
-    margin: 0 0 10px 15px;
+    margin: 10px 0 10px 15px; /* Moved margin slightly */
     background: #000;
     box-shadow: 0 0 8px rgba(0,0,0,0.5);
+    clear: both; /* Ensure it clears previous floats if needed */
 }
 
 /* Top Right Controls Container */
@@ -376,6 +377,50 @@
 
 .hidden {
     display: none !important;
+}
+
+/* --- Context Details Styling (New) --- */
+.dh-context-details {
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid #a0a0a0;
+    border-radius: 5px;
+    padding: 8px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+}
+.dh-context-details summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: #4b0000;
+    font-family: "Modesto Condensed", serif;
+    font-size: 1.1em;
+}
+
+/* Visual separation for stacked contexts */
+.dh-context-group {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #ccc;
+}
+.dh-context-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+.dh-context-group h2, .dh-context-group h3 {
+    margin-top: 5px;
+    font-size: 1.2em; /* Smaller headers in context */
+    border-bottom: none;
+    color: #666; /* Muted color */
+}
+
+/* --- Empty State Image --- */
+.dh-empty-state-img {
+    max-width: 100%;
+    opacity: 0.8; 
+    margin-top: 20px;
+    width: 1200px; /* As requested, max avail */
+    height: auto;
 }
 
 /* --- Floating Button & Animation --- */

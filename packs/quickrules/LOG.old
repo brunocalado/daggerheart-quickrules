@@ -1,8 +1,8 @@
-2026/01/04-19:24:32.617 34a4 Recovering log #138
-2026/01/04-19:24:32.620 34a4 Delete type=0 #138
-2026/01/04-19:24:32.620 34a4 Delete type=3 #136
-2026/01/04-19:54:35.607 dfc Level-0 table #143: started
-2026/01/04-19:54:35.607 dfc Level-0 table #143: 0 bytes OK
-2026/01/04-19:54:35.609 dfc Delete type=0 #141
-2026/01/04-19:54:35.614 dfc Manual compaction at level-0 from '!journal!4FMgjWRjFuNSIrSA' @ 72057594037927935 : 1 .. '!journal.pages!4FMgjWRjFuNSIrSA.zyDX9yPwp0sw8vdK' @ 0 : 0; will stop at (end)
-2026/01/04-19:54:35.614 dfc Manual compaction at level-1 from '!journal!4FMgjWRjFuNSIrSA' @ 72057594037927935 : 1 .. '!journal.pages!4FMgjWRjFuNSIrSA.zyDX9yPwp0sw8vdK' @ 0 : 0; will stop at (end)
+2026/01/04-20:04:04.524 4860 Recovering log #142
+2026/01/04-20:04:04.527 4860 Delete type=0 #142
+2026/01/04-20:04:04.527 4860 Delete type=3 #140
+2026/01/04-20:44:12.746 dfc Level-0 table #147: started
+2026/01/04-20:44:12.746 dfc Level-0 table #147: 0 bytes OK
+2026/01/04-20:44:12.747 dfc Delete type=0 #145
+2026/01/04-20:44:12.751 dfc Manual compaction at level-0 from '!journal!4FMgjWRjFuNSIrSA' @ 72057594037927935 : 1 .. '!journal.pages!4FMgjWRjFuNSIrSA.zyDX9yPwp0sw8vdK' @ 0 : 0; will stop at (end)
+2026/01/04-20:44:12.751 dfc Manual compaction at level-1 from '!journal!4FMgjWRjFuNSIrSA' @ 72057594037927935 : 1 .. '!journal.pages!4FMgjWRjFuNSIrSA.zyDX9yPwp0sw8vdK' @ 0 : 0; will stop at (end)

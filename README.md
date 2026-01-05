@@ -1,5 +1,7 @@
 # 📜 Daggerheart: Quick Rules 📜
 
+<p align="center"><img width="900" src="assets/images/avatar.webp"></p>
+
 **Instant Rule Reference for Foundry VTT**
 
 <p align="center"><img width="750" src="docs/preview.webp"></p>
