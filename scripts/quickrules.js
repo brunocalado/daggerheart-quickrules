@@ -474,7 +474,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     /**
      * Builds the Split Journal from the Compendium
      */
-    static async buildSRD(mode = 'standard') {
+    // UPDATED: Default mode is now 'All' instead of 'standard'
+    static async buildSRD(mode = 'All') {
         const sourceUuid = "Compendium.daggerheart.journals.JournalEntry.uNs7ne9VCbbu5dcG";
         const targetJournalName = (mode === 'All') ? "Daggerheart SRD - All" : "Daggerheart SRD - Rules";
         const targetFolderName = "QuickRulesDB";
@@ -660,7 +661,11 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         if (match) {
                             const term = match[1].trim();
                             const contentHtml = li.innerHTML; 
+                            
+                            // *** CORREÇÃO DO ERRO DE SINTAXE AQUI ***
+                            // Substituí a string corrompida por aspas normais e curvas
                             if (/^["'“]/.test(term)) continue;
+
                             const wordCount = term.split(/\s+/).length;
                             if (wordCount > 8) continue;
                             if (term.includes("@UUID") || term.includes("@Compendium")) continue;

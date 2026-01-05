@@ -67,7 +67,8 @@ Hooks.once("init", () => {
             module.api.render({ force: true });
         },
         
-        Build: async (mode = 'standard') => {
+        // UPDATED: Default mode is now 'All' instead of 'standard'
+        Build: async (mode = 'All') => {
              if (!game.user.isGM) {
                  ui.notifications.warn("Only the GM can build the SRD content.");
                  return;
