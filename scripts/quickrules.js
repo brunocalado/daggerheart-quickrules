@@ -737,6 +737,48 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         const desc = rawDesc || (item.type === "beastform" ? "" : "No description available.");
                         let itemName = formatTitle(item.name);
                         
+                        // --- BOOK OF... DOMAINS LOGIC (NEW) ---
+                        if (packName === "daggerheart.domains" && item.name.includes("Book of")) {
+                            try {
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(rawDesc, "text/html");
+                                // Iterate over paragraphs to find "Name: Text" patterns
+                                const paragraphs = doc.querySelectorAll('p');
+                                
+                                for (const p of paragraphs) {
+                                    // Get plain text to check pattern
+                                    const text = p.textContent.trim();
+                                    const match = text.match(/^([^:]+):\s+(.*)$/);
+                                    
+                                    if (match) {
+                                        const subName = match[1].trim();
+                                        // Avoid creating pages for extremely long "names" (likely paragraphs with colons later)
+                                        if (subName.length > 50) continue; 
+
+                                        const pageTitle = formatTitle(subName);
+                                        
+                                        // Construct content with link to original
+                                        let pageHtml = p.outerHTML;
+                                        
+                                        pageHtml += `
+                                            <div style="margin-top: 20px; text-align: center; border-top: 1px solid #4b0000; padding-top: 10px;">
+                                                <p>Source: @UUID[${item.uuid}]{${item.name}}</p>
+                                            </div>
+                                        `;
+
+                                        newPagesData.push({
+                                            name: pageTitle,
+                                            text: { content: pageHtml, format: 1 },
+                                            title: { show: false, level: 1 },
+                                            flags: { "daggerheart-quickrules": { sourcePack: packName } }
+                                        });
+                                    }
+                                }
+                            } catch (err) {
+                                console.warn(`Error parsing Book of content for ${item.name}`, err);
+                            }
+                        }
+
                         // --- BEASTFORMS: PREFIX FEATURES ---
                         if (packName === "daggerheart.beastforms" && item.type === "feature") {
                             itemName = "Beastform Feature: " + itemName;

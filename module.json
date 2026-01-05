@@ -30,6 +30,12 @@
       }
     ]
   },
+
+  "media": [{
+    "type": "setup",
+    "url": "modules/daggerheart-quickrules/assets/images/thumbnail.webp",
+    "thumbnail": "modules/daggerheart-quickrules/assets/images/thumbnail.webp"
+  }], 
   
   "url": "https://github.com/brunocalado/daggerheart-quickrules",
   "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-quickrules/main/module.json",
@@ -48,7 +54,8 @@
         "PLAYER": "NONE",
         "ASSISTANT": "OWNER"
       },
-      "flags": {}
+      "flags": {},
+      "banner": "modules/daggerheart-quickrules/assets/images/banner.webp" 
     },
     {
       "label": "Macros",
@@ -60,7 +67,8 @@
         "PLAYER": "NONE",
         "ASSISTANT": "OWNER"
       },
-      "flags": {}
+      "flags": {},
+      "banner": "modules/daggerheart-quickrules/assets/images/banner.webp" 
     },
     {
       "label": "Loot and Consumable",
@@ -70,7 +78,8 @@
       "system": "daggerheart",
       "ownership": {
         "PLAYER": "OBSERVER",
-        "ASSISTANT": "OWNER"
+        "ASSISTANT": "OWNER",
+      "banner": "modules/daggerheart-quickrules/assets/images/banner.webp" 
       },
       "flags": {}
     }    
