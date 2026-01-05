@@ -583,7 +583,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             console.log(`Updating existing Journal '${targetJournalName}' in pack '${targetPackName}'...`);
         }
 
-        // --- Processamento de Texto (Identico ao anterior) ---
+        // --- Processamento de Texto ---
         const newPagesData = [];
         const getHeaderLevel = (node) => {
             if (!node.tagName) return 0;
@@ -612,7 +612,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
         const pages = sourceJournal.pages.contents.sort((a, b) => a.sort - b.sort);
 
-        // --- NEW: Rule Ordering Counter ---
+        // --- RULE ORDERING ---
         let ruleIndex = 1;
 
         for (const page of pages) {
@@ -625,11 +625,11 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             const body = doc.body;
             const children = Array.from(body.children);
 
-            // --- ACCUMULATORS ---
-            let activeH2Accumulator = "";
-            let activeH3Accumulator = "";
-            
-            // UPDATED: ADD FLAG "type: rule" AND "order"
+            // --- REVISED CONTEXT LOGIC (HIERARCHICAL BUFFERS) ---
+            let h2Buffer = "";      // Accumulates content from the start of the current H2
+            let h3Buffer = "";      // Accumulates content from the start of the current H3
+            let lastH2Content = ""; // Stores the FULL content of the previous H2 section
+
             newPagesData.push({
                 name: formatTitle(page.name),
                 text: { content: content, format: 1 },
@@ -639,6 +639,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
             if (children.length === 0) continue;
 
+            // Handle Intro (Before H1/H2)
             let firstNodeLevel = getHeaderLevel(children[0]);
             if (firstNodeLevel === 0) {
                 let introBuffer = "";
@@ -660,39 +661,47 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 const currentNode = children[i];
                 const currentLevel = getHeaderLevel(currentNode);
 
-                // --- 1. DETERMINE CONTEXT ---
+                // --- 1. DETERMINE CONTEXT (Before updating buffers) ---
                 let contextToInject = "";
                 
-                if (currentLevel === 3) {
-                    if (activeH2Accumulator) {
-                        contextToInject = `<div class="dh-context-group">${activeH2Accumulator}</div>`;
+                if (currentLevel === 2) {
+                    // Rule 1: H2 looks for previous H2 (sibling).
+                    if (lastH2Content) {
+                        contextToInject = `<div class="dh-context-group">${lastH2Content}</div>`;
                     }
-                } else if (currentLevel === 4) {
-                    if (activeH2Accumulator) contextToInject += `<div class="dh-context-group">${activeH2Accumulator}</div>`;
-                    if (activeH3Accumulator) contextToInject += `<div class="dh-context-group">${activeH3Accumulator}</div>`;
-                }
-
-                // --- 2. UPDATE ACCUMULATORS ---
-                if (currentLevel === 1) {
-                    activeH2Accumulator = "";
-                    activeH3Accumulator = "";
-                } 
-                else if (currentLevel === 2) {
-                    activeH2Accumulator = currentNode.outerHTML; 
-                    activeH3Accumulator = ""; 
+                    // When hitting a NEW H2, the current H2 buffer becomes the "last" one for future H2s.
+                    // IMPORTANT: We do this AFTER injecting context for THIS node? 
+                    // No, for the *next* H2.
+                    if (h2Buffer) lastH2Content = h2Buffer;
+                    h2Buffer = ""; // Reset for new section
+                    h3Buffer = ""; // Reset subsection
                 } 
                 else if (currentLevel === 3) {
-                    activeH3Accumulator = currentNode.outerHTML; 
+                    // Rule 2: H3 looks for H2 (parent).
+                    if (h2Buffer) {
+                        contextToInject = `<div class="dh-context-group">${h2Buffer}</div>`;
+                    }
+                    h3Buffer = ""; // Reset for new subsection
                 } 
-                else if (currentLevel === 0) {
-                    if (activeH3Accumulator) {
-                        activeH3Accumulator += currentNode.outerHTML;
-                    } else if (activeH2Accumulator) {
-                        activeH2Accumulator += currentNode.outerHTML;
+                else if (currentLevel === 4) {
+                    // Rule 3: H4 looks for H3 (parent).
+                    if (h3Buffer) {
+                        contextToInject = `<div class="dh-context-group">${h3Buffer}</div>`;
                     }
                 }
 
-                // --- 3. STANDARD PARSING ---
+                // --- 2. UPDATE BUFFERS (For future nodes) ---
+                // Always append current node to active hierarchical buffers
+                h2Buffer += currentNode.outerHTML;
+                // Only append to H3 buffer if we are inside an H3 block (implied if H3 buffer is active or we just started one)
+                // However, simple appending works fine because we reset it at H3 start.
+                if (currentLevel !== 2) { // Don't add H2 header to H3 buffer
+                     h3Buffer += currentNode.outerHTML;
+                }
+
+                // --- 3. STANDARD PARSING (Page Generation) ---
+                
+                // Optional Rule Handling
                 if (currentNode.tagName === "BLOCKQUOTE") {
                     if (currentNode.innerText.includes("Optional Rule")) {
                         const contentHtml = currentNode.outerHTML;
@@ -716,6 +725,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                     }
                 }
 
+                // Definition Lists (UL/OL)
                 if (currentNode.tagName === "UL" || currentNode.tagName === "OL") {
                     const listItems = Array.from(currentNode.children);
                     for (const li of listItems) {
@@ -743,11 +753,13 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                     }
                 }
 
+                // Headers (Sections)
                 if (currentLevel > 0) {
                     let sectionBuffer = "";
                     const rawTitle = currentNode.innerText || "Section";
                     const sectionTitle = formatTitle(rawTitle);
 
+                    // Read ahead for content
                     for (let j = i; j < children.length; j++) {
                         const subNode = children[j];
                         const subLevel = getHeaderLevel(subNode);
@@ -758,7 +770,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                     if (contextToInject) {
                         const contextHtml = `
                         <details class="dh-context-details">
-                            <summary>Show Context (Parent Section)</summary>
+                            <summary>Show Context</summary>
                             ${contextToInject}
                         </details>
                         `;
