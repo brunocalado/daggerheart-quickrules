@@ -1,15 +1,8 @@
-2026/01/06-09:12:09.812 54b8 Recovering log #398
-2026/01/06-09:12:09.816 54b8 Delete type=0 #398
-2026/01/06-09:12:09.817 54b8 Delete type=3 #396
-2026/01/06-10:46:22.165 2108 Level-0 table #404: started
-2026/01/06-10:46:22.192 2108 Level-0 table #404: 2013565 bytes OK
-2026/01/06-10:46:22.196 2108 Delete type=0 #402
-2026/01/06-10:46:22.202 2108 Manual compaction at level-0 from '!journal!0HoIamgOonkR18O4' @ 72057594037927935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zzSPCsK8ZGUh2tkB' @ 0 : 0; will stop at (end)
-2026/01/06-10:46:22.202 2108 Manual compaction at level-1 from '!journal!0HoIamgOonkR18O4' @ 72057594037927935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zzSPCsK8ZGUh2tkB' @ 0 : 0; will stop at '!journal.pages!0HoIamgOonkR18O4.zzSPCsK8ZGUh2tkB' @ 142648 : 1
-2026/01/06-10:46:22.202 2108 Compacting 1@1 + 1@2 files
-2026/01/06-10:46:22.233 2108 Generated table #405@1: 1181 keys, 1711938 bytes
-2026/01/06-10:46:22.233 2108 Compacted 1@1 + 1@2 files => 1711938 bytes
-2026/01/06-10:46:22.233 2108 compacted to: files[ 0 0 1 0 0 0 0 ]
-2026/01/06-10:46:22.234 2108 Delete type=2 #400
-2026/01/06-10:46:22.234 2108 Delete type=2 #404
-2026/01/06-10:46:22.237 2108 Manual compaction at level-1 from '!journal.pages!0HoIamgOonkR18O4.zzSPCsK8ZGUh2tkB' @ 142648 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zzSPCsK8ZGUh2tkB' @ 0 : 0; will stop at (end)
+2026/01/06-10:47:19.378 c24 Recovering log #403
+2026/01/06-10:47:19.381 c24 Delete type=0 #403
+2026/01/06-10:47:19.381 c24 Delete type=3 #401
+2026/01/06-10:50:30.838 2108 Level-0 table #409: started
+2026/01/06-10:50:30.838 2108 Level-0 table #409: 0 bytes OK
+2026/01/06-10:50:30.839 2108 Delete type=0 #407
+2026/01/06-10:50:30.842 2108 Manual compaction at level-0 from '!journal!0HoIamgOonkR18O4' @ 72057594037927935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zzSPCsK8ZGUh2tkB' @ 0 : 0; will stop at (end)
+2026/01/06-10:50:30.842 2108 Manual compaction at level-1 from '!journal!0HoIamgOonkR18O4' @ 72057594037927935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zzSPCsK8ZGUh2tkB' @ 0 : 0; will stop at (end)
