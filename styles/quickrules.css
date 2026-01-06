@@ -121,7 +121,7 @@
     font-weight: bold;
 }
 
-/* Search Input Container - UPDATED */
+/* Search Input Container */
 .dh-search-container {
     position: relative;
     width: 100%;
@@ -145,7 +145,7 @@
     box-shadow: 0 0 5px rgba(220, 177, 93, 0.5);
 }
 
-/* Search Clear Button - NEW */
+/* Search Clear Button */
 .dh-clear-btn {
     flex: 0 0 30px; /* Square fixed width */
     height: 30px;   /* Match input height approx */
@@ -378,8 +378,8 @@
     color: #666;
 }
 
-/* Journal Content Rendering */
-.journal-entry-page {
+/* Journal Content Rendering - SCOPED TO AVOID LEAKS */
+.dh-quickrules-container .journal-entry-page {
     flex: 1;
     padding: 30px 40px;
     overflow-y: auto;
@@ -392,13 +392,15 @@
     /* Enable text selection */
     user-select: text; 
 }
+
+/* Light mode scoping logic is already specific (starts with .dh-quickrules-container) */
 .dh-quickrules-container.light .journal-entry-page {
     color: #111111; /* High Contrast Black */
     scrollbar-color: #dcb15d #fff;
 }
 
-/* Typography inside content */
-.journal-entry-page h1 {
+/* Typography inside content - SCOPED */
+.dh-quickrules-container .journal-entry-page h1 {
     border-bottom: 2px solid #dcb15d;
     color: #dcb15d;
     font-family: "Modesto Condensed", "Aleo", serif;
@@ -410,7 +412,7 @@
     border-bottom: 2px solid #8B6914;
 }
 
-.journal-entry-page h2 {
+.dh-quickrules-container .journal-entry-page h2 {
     color: #e5c377;
     border-bottom: 1px solid #5e4b2a;
     font-family: "Modesto Condensed", serif;
@@ -422,8 +424,8 @@
     border-bottom: 1px solid #dcb15d;
 }
 
-.journal-entry-page h3, 
-.journal-entry-page h4 {
+.dh-quickrules-container .journal-entry-page h3, 
+.dh-quickrules-container .journal-entry-page h4 {
     color: #C9A060;
     margin-top: 15px;
 }
@@ -433,8 +435,8 @@
     color: #8B6914;
 }
 
-.journal-entry-page strong, 
-.journal-entry-page b {
+.dh-quickrules-container .journal-entry-page strong, 
+.dh-quickrules-container .journal-entry-page b {
     color: #ffffff;
     font-weight: 700;
 }
@@ -443,7 +445,7 @@
     color: #000;
 }
 
-.journal-entry-page p {
+.dh-quickrules-container .journal-entry-page p {
     margin-bottom: 1em;
 }
 
