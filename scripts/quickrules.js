@@ -190,8 +190,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
         if (this.viewMode !== 'all') {
             this.viewMode = 'all';
-            // If view mode changed, we might need to re-render structure, but usually just highlighting is enough
-            // For safety, if view mode changed, we do a full render once, then swap
         }
         
         // Ensure filters allow seeing the content
@@ -204,23 +202,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
         const targetPage = this._cachedPages.find(p => p.id === pageId);
         
-        // If not in cache, maybe filters are hiding it?
-        // We'll trust the logic that if it's not in cache with current filters, we might need to enable filters
-        
-        // ... (existing logic to enable filters) ...
-        // Simplification for Refactor: We assume if it's in cache we go there.
-        // If we need to enable filters, we must do it and THEN rebuild cache.
-
-        // Re-implementing filter check logic briefly:
-        // Since we don't have the page object if it's filtered out of cache, 
-        // we might need to peek at the source journal if not found.
-        
         if (!targetPage) {
-             // Logic to find page even if hidden, then enable filters, clear cache, and render
-             // For now, let's trigger a full render if we forced a filter change, otherwise just renderContent
-             
-             // If we suspect it's hidden, we might need to reload everything.
-             // For safety in this specific "Force" method, we can stick to full render if we change filters.
+             // Logic to find page even if hidden
         }
 
         this.selectedPageId = pageId;
@@ -346,20 +329,12 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         context.hasPages = true;
 
         // 3. Logic for Navigation (Next/Prev in List)
-        // We use the FULL cached list for Next/Prev logic if in All mode, 
-        // or filtered list if in favorites? Usually book navigation implies the full book order.
-        // For list navigation (prevPageId), we use the displayed list.
-        
         /* Note: Original code calculated prevPageId/nextPageId based on the list.
            We can keep this, or skip it if it's not actively used in the UI (only RuleOrder is used in UI).
            The provided template uses prevRuleId/nextRuleId.
         */
 
         // 4. Content Logic
-        // Only enrich content if we are doing a full render. 
-        // If we are swapping DOM, renderPageContent handles this.
-        // However, initial render needs content.
-        
         // Determine Rule Order for initial render
         if (this.selectedPageId) {
             const currentPageObj = this._cachedPages.find(p => p.id === this.selectedPageId);
@@ -833,6 +808,9 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
                 if (currentNode.tagName === "UL" || currentNode.tagName === "OL") {
                     const listItems = Array.from(currentNode.children);
+                    // NEW: Capture the full list HTML to use for context
+                    const fullListHtml = currentNode.outerHTML;
+
                     for (const li of listItems) {
                         if (li.tagName !== "LI") continue;
                         const text = li.innerText.trim();
@@ -840,7 +818,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         
                         if (match) {
                             const term = match[1].trim();
-                            const contentHtml = li.innerHTML; 
+                            // const contentHtml = li.innerHTML; // OLD: Used just the LI content
                             
                             // Regex to handle standard and smart quotes
                             if (/^["'“]/.test(term)) continue;
@@ -851,7 +829,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
                             newPagesData.push({
                                 name: formatTitle(term),
-                                text: { content: `<p>${contentHtml}</p>`, format: 1 },
+                                // CHANGED: Now uses the full list HTML instead of just the item
+                                text: { content: fullListHtml, format: 1 },
                                 title: { show: false, level: 1 },
                                 flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
                             });
