@@ -79,6 +79,8 @@
     font-size: 13px;
     font-weight: 500;
     transition: all 0.2s;
+    /* Ensure box model consistency */
+    box-sizing: border-box;
 }
 
 .dh-mode-btn.square-btn {
@@ -128,6 +130,7 @@
     margin-top: 4px;
     display: flex;
     gap: 4px; /* Space between input and button */
+    height: 30px; /* Enforce uniform row height */
 }
 
 .dh-search-input {
@@ -135,9 +138,12 @@
     background: rgba(0,0,0,0.3);
     border: 1px solid #444;
     color: #fff;
-    padding: 6px 10px;
+    padding: 0 10px; /* Vertical padding removed to let height/line-height handle it */
     border-radius: 4px;
     font-family: "Signika", sans-serif;
+    height: 100%; /* Match container height */
+    box-sizing: border-box;
+    line-height: 28px; /* Vertically center text approx */
 }
 
 .dh-search-input:focus {
@@ -145,14 +151,17 @@
     box-shadow: 0 0 5px rgba(220, 177, 93, 0.5);
 }
 
-/* Search Clear Button */
-.dh-clear-btn {
-    flex: 0 0 30px; /* Square fixed width */
-    height: 30px;   /* Match input height approx */
+/* Search Buttons (Clear + Deep Search) */
+.dh-search-container .dh-mode-btn {
+    flex: 0 0 30px; /* Fixed Width */
+    width: 30px;
+    height: 100%;   /* Match container height (30px) */
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 4px;
+    margin: 0;
 }
 
 /* Search Input Light Mode */

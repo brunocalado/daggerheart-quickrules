@@ -39,7 +39,7 @@
                 </div>
             </div>
 
-            {{!-- Search Row with Clear Button --}}
+            {{!-- Search Row with Clear Button and Deep Search Toggle --}}
             <div class="dh-search-container">
                 <input type="text" class="dh-search-input" placeholder="Search pages..." autocomplete="off" value="{{searchQuery}}">
                 
@@ -47,6 +47,13 @@
                         data-action="clearSearch" 
                         data-tooltip="Clear Search">
                     <i class="fas fa-times"></i>
+                </button>
+
+                {{!-- Deep Search Toggle Button --}}
+                <button type="button" class="dh-mode-btn square-btn dh-deep-search-btn {{#if deepSearch}}active{{/if}}" 
+                        data-action="toggleDeepSearch" 
+                        data-tooltip="Toggle Deep Search (Search Inside Content)">
+                    <i class="fas fa-file-alt"></i>
                 </button>
             </div>
         </div>

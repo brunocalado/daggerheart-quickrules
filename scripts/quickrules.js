@@ -12,6 +12,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         this.searchQuery = "";
         this.scrollPos = 0;
         this.viewMode = 'all';
+        this.deepSearch = false; // Will be overwritten by flag in _prepareContext
         
         // Cache storage to prevent heavy DB calls on every render
         this._cachedPages = null; 
@@ -42,7 +43,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             toggleFilter: DaggerheartQuickRules._onToggleFilter,
             toggleTheme: DaggerheartQuickRules._onToggleTheme,
             forceOpen: DaggerheartQuickRules._onForceOpen,
-            clearSearch: DaggerheartQuickRules._onClearSearch
+            clearSearch: DaggerheartQuickRules._onClearSearch,
+            toggleDeepSearch: DaggerheartQuickRules._onToggleDeepSearch
         }
     };
 
@@ -293,6 +295,10 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         const filters = game.user.getFlag("daggerheart-quickrules", "filters") || { rules: true, compendiums: true, custom: true };
         const favorites = game.user.getFlag("daggerheart-quickrules", "favorites") || [];
         const fontSize = game.user.getFlag("daggerheart-quickrules", "fontSize") || 14; 
+        
+        // --- PERSISTENCE: DEEP SEARCH ---
+        // Retrieve saved state, default to false if not set
+        this.deepSearch = game.user.getFlag("daggerheart-quickrules", "deepSearch") ?? false;
 
         // 1. Build Cache if missing
         if (!this._cachedPages) {
@@ -322,7 +328,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             hasRuleOrder: false,
             prevRuleId: null,
             nextRuleId: null,
-            searchQuery: this.searchQuery
+            searchQuery: this.searchQuery,
+            deepSearch: this.deepSearch // Pass state to template
         };
 
         if (displayPages.length === 0) return context;
@@ -390,33 +397,86 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         
         if (searchInput) {
             searchInput.value = this.searchQuery;
+            
+            // Execute filter immediately if query exists (restore state)
             if (this.searchQuery) {
                 this._filterList(this.searchQuery);
             }
-            searchInput.addEventListener('input', (event) => {
+
+            // Define debounced handler to prevent UI lag while typing
+            const debouncedFilter = foundry.utils.debounce((event) => {
                 this.searchQuery = event.target.value; 
                 this._filterList(this.searchQuery);
-            });
+            }, 300);
+
+            searchInput.addEventListener('input', debouncedFilter);
+
             // Only focus if there is a query, to prevent annoying jumps on normal render
             if (this.searchQuery) searchInput.focus(); 
         }
     }
 
+    /**
+     * Filters the sidebar list based on the search query.
+     * Implements "Deep Search" by checking both page name and content.
+     */
     _filterList(query) {
-        const term = query.toLowerCase();
+        const term = query.toLowerCase().trim();
         const html = this.element;
         const items = html.querySelectorAll('.dh-page-item');
         const headers = html.querySelectorAll('.dh-letter-group');
 
+        // Optimization: If search is empty, show everything immediately
+        if (!term) {
+            items.forEach(item => item.classList.remove('hidden'));
+            headers.forEach(group => group.classList.remove('hidden'));
+            return;
+        }
+
+        // Step 1: Identify Matches in Cache (Deep Search)
+        // We use a Set for O(1) lookups later
+        const matches = new Set();
+        
+        if (this._cachedPages) {
+            const tagRegex = /<[^>]*>/g; // Regex to strip HTML tags for clean text search
+            const contextRegex = /<details class="dh-context-details">[\s\S]*?<\/details>/gi; // Regex to ignore context
+            
+            for (const page of this._cachedPages) {
+                // A. Check Name (Always checked)
+                if (page.name.toLowerCase().includes(term)) {
+                    matches.add(page.id);
+                    continue; // optimization: matched on name, skip content check
+                }
+                
+                // B. Check Content (ONLY IF DEEP SEARCH IS ENABLED)
+                if (this.deepSearch && page.text && page.text.content) {
+                    // 1. Remove Context details FIRST so we don't match text inside them
+                    let searchableContent = page.text.content.replace(contextRegex, " ");
+
+                    // 2. Strip remaining tags to avoid matching "strong", "div", etc.
+                    const plainText = searchableContent.replace(tagRegex, ' ').toLowerCase();
+
+                    if (plainText.includes(term)) {
+                        matches.add(page.id);
+                    }
+                }
+            }
+        }
+
+        // Step 2: Update DOM based on matches
         items.forEach(item => {
-            const name = item.dataset.pageName.toLowerCase();
-            if (name.includes(term)) {
+            // Retrieve ID from the button inside the item (as per screen.hbs structure)
+            const btn = item.querySelector('[data-page-id]');
+            const pageId = btn?.dataset.pageId;
+
+            if (pageId && matches.has(pageId)) {
                 item.classList.remove('hidden');
             } else {
                 item.classList.add('hidden');
             }
         });
 
+        // Step 3: Handle Letter Groups Visibility
         headers.forEach(group => {
             const visibleChildren = group.querySelectorAll('.dh-page-item:not(.hidden)');
             if (visibleChildren.length === 0) {
@@ -428,6 +488,29 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     }
 
     /* --- Action Handlers --- */
+
+    /**
+     * Toggles the Deep Search mode (searching inside content vs just names)
+     */
+    static async _onToggleDeepSearch(event, target) {
+        event.preventDefault();
+        this.deepSearch = !this.deepSearch;
+        
+        // Save state persistently
+        await game.user.setFlag("daggerheart-quickrules", "deepSearch", this.deepSearch);
+        
+        // Update button visual state manually to avoid full render loop
+        if (this.deepSearch) {
+            target.classList.add('active');
+        } else {
+            target.classList.remove('active');
+        }
+
+        // Re-run filter with existing query
+        if (this.searchQuery) {
+            this._filterList(this.searchQuery);
+        }
+    }
 
     static async _onToggleTheme(event, target) {
         event.preventDefault();
