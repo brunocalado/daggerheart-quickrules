@@ -811,6 +811,17 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                     // NEW: Capture the full list HTML to use for context
                     const fullListHtml = currentNode.outerHTML;
 
+                    // NEW: Context from h2Buffer
+                    let listContext = "";
+                    if (h2Buffer && h2Buffer.trim().length > 0) {
+                        listContext = `
+                        <details class="dh-context-details">
+                            <summary>Show Context</summary>
+                            <div class="dh-context-group">${h2Buffer}</div>
+                        </details>
+                        `;
+                    }
+
                     for (const li of listItems) {
                         if (li.tagName !== "LI") continue;
                         const text = li.innerText.trim();
@@ -830,7 +841,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             newPagesData.push({
                                 name: formatTitle(term),
                                 // CHANGED: Now uses the full list HTML instead of just the item
-                                text: { content: fullListHtml, format: 1 },
+                                // Prepend context
+                                text: { content: listContext + fullListHtml, format: 1 },
                                 title: { show: false, level: 1 },
                                 flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
                             });
