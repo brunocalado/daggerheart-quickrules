@@ -97,11 +97,16 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         const theme = game.user.getFlag("daggerheart-quickrules", "theme") || "light";
         
         // Enrich HTML (Async operation)
-        const enrichedContent = await foundry.applications.ux.TextEditor.enrichHTML(page.text.content, {
+        let enrichedContent = await foundry.applications.ux.TextEditor.enrichHTML(page.text.content, {
             secrets: isGM, 
             async: true,
             relativeTo: page
         });
+
+        // --- NEW: Apply Highlighting if Deep Search is active ---
+        if (this.deepSearch && this.searchQuery) {
+            enrichedContent = this._highlightText(enrichedContent, this.searchQuery);
+        }
 
         // 3. Calculate Next/Prev Logic
         let prevRuleId = null;
@@ -182,6 +187,66 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             // Re-apply font size to the container
             contentArea.style.fontSize = `${fontSize}px`;
         }
+    }
+
+    /**
+     * Helper Method: Highlight search terms in HTML string.
+     * Uses DOM TreeWalker to safely replace text in TextNodes without breaking HTML tags.
+     */
+    _highlightText(htmlContent, term) {
+        if (!term || !term.trim()) return htmlContent;
+
+        const cleanTerm = term.trim();
+        // Escape special regex characters to prevent errors
+        const escapedTerm = cleanTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedTerm})`, 'gi');
+
+        // Create a temporary container to manipulate the DOM
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+
+        // TreeWalker to iterate only over Text Nodes
+        const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null, false);
+        const textNodes = [];
+
+        // Collect matching text nodes first
+        while (walker.nextNode()) {
+            if (regex.test(walker.currentNode.nodeValue)) {
+                textNodes.push(walker.currentNode);
+            }
+        }
+
+        // Replace matched text nodes with HTML
+        for (const node of textNodes) {
+            // Check if parent is already a script/style/context detail to avoid bad replacements
+            if (node.parentNode.tagName === 'SCRIPT' || node.parentNode.tagName === 'STYLE') continue;
+            
+            // Note: We avoid highlighting inside the hidden context details, 
+            // but since they are 'details' > 'div', the walker goes inside.
+            // If you strictly want to avoid highlighting inside context details:
+            if (node.parentNode.closest('.dh-context-details')) continue;
+
+            const fragment = document.createDocumentFragment();
+            // Split text by regex matches
+            const parts = node.nodeValue.split(regex);
+            
+            parts.forEach(part => {
+                if (regex.test(part)) {
+                    // This part matches the search term
+                    const mark = document.createElement('mark');
+                    mark.className = 'dh-highlight';
+                    mark.textContent = part; // Use textContent to prevent XSS
+                    fragment.appendChild(mark);
+                } else {
+                    // This part is normal text
+                    fragment.appendChild(document.createTextNode(part));
+                }
+            });
+
+            node.parentNode.replaceChild(fragment, node);
+        }
+
+        return tempDiv.innerHTML;
     }
 
     /**
@@ -356,11 +421,19 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 }
                 
                 context.activePageName = currentPageObj.name;
-                context.activeContent = await foundry.applications.ux.TextEditor.enrichHTML(currentPageObj.text.content, {
+                
+                let contentHTML = await foundry.applications.ux.TextEditor.enrichHTML(currentPageObj.text.content, {
                     secrets: game.user.isGM, 
                     async: true,
                     relativeTo: currentPageObj
                 });
+
+                // --- NEW: Apply Highlighting if Deep Search is active (Initial Render) ---
+                if (this.deepSearch && this.searchQuery) {
+                    contentHTML = this._highlightText(contentHTML, this.searchQuery);
+                }
+
+                context.activeContent = contentHTML;
             }
         }
 
@@ -509,6 +582,10 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         // Re-run filter with existing query
         if (this.searchQuery) {
             this._filterList(this.searchQuery);
+            // Also re-render content to apply/remove highlights
+            if (this.selectedPageId) {
+                this.renderPageContent(this.selectedPageId);
+            }
         }
     }
 
