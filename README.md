@@ -54,6 +54,8 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 
 * **Search:** Type in the top bar to filter the list.
 
+* **Deep Search:** Toggle to search within titles or throughout the entire text.
+
 * **Favorite:** Click the star icon (☆) next to any page to add it to your Favorites tab.
 
 * **Share:** Click the "Share" button inside an entry to post it to the Chat.
@@ -73,3 +75,23 @@ https://raw.githubusercontent.com/brunocalado/daggerheart-quickrules/main/module
 * **Assets:** AI Audio and images provided are [CC0 1.0 Universal Public Domain](https://creativecommons.org/publicdomain/zero/1.0/).
 
 **Disclaimer:** This module is an independent creation and is not affiliated with Darrington Press. This product includes materials from the Daggerheart System Reference Document 1.0, Critical Role, LLC. under the terms of the Darrington Press Community Gaming (DPCGL) License. More information can be found at [https://www.daggerheart.com](https://www.daggerheart.com).
+
+# 🧰 My Daggerheart Modules
+
+| Module | Description |
+| :--- | :--- |
+| 💀 [**Adversary Manager**](https://github.com/brunocalado/daggerheart-advmanager) | Scale adversaries instantly and build balanced encounters in Foundry VTT. |
+| ☠️ [**Death Moves**](https://github.com/brunocalado/daggerheart-death-moves) | Enhances the Death Move moment with immersive audio and visual effects. |
+| 📏 [**Distances**](https://github.com/brunocalado/daggerheart-distances) | Visualizes combat ranges with customizable rings and hover calculations. |
+| 🤖 [**Fear Macros**](https://github.com/brunocalado/daggerheart-fear-macros) | Automatically executes macros when the Fear resource is changed. |
+| 😱 [**Fear Tracker**](https://github.com/brunocalado/daggerheart-fear-tracker) | Adds an animated slider bar with configurable fear tokens to the UI. |
+| 🛒 [**Store**](https://github.com/brunocalado/daggerheart-store) | A dynamic, interactive, and fully configurable store for Foundry VTT. |
+| 📦 [**Extra Content**](https://github.com/brunocalado/daggerheart-extra-content) | Additional resources and materials for Daggerheart. |
+| 📜 [**Quick Rules**](https://github.com/brunocalado/daggerheart-quickrules) | Fast and accessible reference guide for the core rules. |
+
+# 🗺️ Adventures
+
+| Adventure | Description |
+| :--- | :--- |
+| ✨ [**I Wish**](https://github.com/brunocalado/i-wish-daggerheart-adventure) | A wealthy merchant is cursed; one final expedition may be the only hope. |
+| 💣 [**Suicide Squad**](https://github.com/brunocalado/suicide-squad-daggerheart-adventure) | Criminals forced to serve a ruthless master in a land on the brink of war. |
