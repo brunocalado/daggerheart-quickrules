@@ -1198,6 +1198,12 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                                 if (t === "beastform") categoryFlag = "Beastform";
                                 if (t === "feature") categoryFlag = "Beastform Feature";
                                 break;
+                            case "daggerheart.adversaries":
+                                if (t === "adversary") categoryFlag = "Adversary";
+                                break;
+                            case "daggerheart.environments":
+                                if (t === "environment") categoryFlag = "Environment";
+                                break;
                         }
 
                         // --- BOOK OF... DOMAINS LOGIC ---
@@ -1543,7 +1549,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             name: cleanName,
                             text: { content: tableHtml, format: 1 },
                             title: { show: false, level: 1 },
-                            flags: { "daggerheart-quickrules": { sourcePack: lootTablePackName } }
+                            flags: { "daggerheart-quickrules": { type: "rule" } } // Changed to Rule Type
                         });
                     }
                 } else {
@@ -1595,7 +1601,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         name: "Adversaries by Type",
                         text: { content: summaryHtml, format: 1 },
                         title: { show: false, level: 1 },
-                        flags: { "daggerheart-quickrules": { sourcePack: "daggerheart.adversaries" } }
+                        flags: { "daggerheart-quickrules": { type: "rule" } } // Changed to Rule Type
                     });
                 }
             } catch (e) {
