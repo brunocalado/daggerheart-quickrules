@@ -122,7 +122,6 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
         }
         
         // SCROLL FIX: Do NOT call render(). Update the button state manually via DOM.
-        // This prevents the list from rebuilding and losing scroll position.
         const btn = this.element.querySelector('.dh-build-btn');
         if (btn) {
             btn.disabled = this.selectedFolders.size === 0;
@@ -173,20 +172,19 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
             folder = await Folder.create({
                 name: targetFolderName, 
                 type: "JournalEntry", 
-                color: "#dcb15d",
+                color: "#5c0547", // Updated color
                 sorting: "a"
             });
         }
 
         // 2. Find or Create the JOURNAL inside that folder
-        // Use loose matching for folder ID to be safe, but stricter name matching
         let targetJournal = game.journal.find(j => j.name === targetJournalName && j.folder?.id === folder.id);
         
         if (!targetJournal) {
             targetJournal = await JournalEntry.create({
                 name: targetJournalName,
                 folder: folder.id,
-                // CHANGE: Default permission is now NONE (0) instead of Observer (2)
+                // Default permission is NONE (0)
                 ownership: { default: 0 } 
             });
         }
@@ -241,84 +239,118 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
         let title = doc.name;
         let content = "";
         let imgSrc = doc.img;
-        let isImageOnly = false;
-
-        // Common Link HTML
-        const originLink = `
-            <div style="margin-top: 20px; text-align: center; border-top: 1px solid #4b0000; padding-top: 10px; clear: both;">
-                <p>@UUID[${doc.uuid}]{Open ${doc.documentName}}</p>
-            </div>
-        `;
+        
+        // Check if image exists and is valid
+        const hasImg = imgSrc && imgSrc !== "icons/svg/mystery-man.svg";
 
         // Get permissions from original document
         const permissions = doc.ownership || { default: 0 };
 
+        // --- 1. HEADER (Title + Type) ---
+        let subTitle = "";
+        if (doc.type) {
+            // Capitalize first letter of type
+            subTitle = doc.type.charAt(0).toUpperCase() + doc.type.slice(1);
+        }
+        
+        const headerHtml = `
+            <div class="dh-custom-header">
+                <h1>${doc.name}</h1>
+                ${subTitle ? `<div class="dh-custom-meta">${subTitle}</div>` : ""}
+            </div>
+        `;
+
+        // --- 2. LINK (Right after Header) ---
+        const linkHtml = `
+            <div style="margin: 10px 0 20px 0; text-align: center; border-bottom: 1px solid #4b0000; padding-bottom: 10px;">
+                <p>@UUID[${doc.uuid}]{Open ${doc.documentName}}</p>
+            </div>
+        `;
+
+        // --- 3. BODY (Stats & Description) ---
+        let bodyHtml = "";
+        
         // A. ITEMS
         if (doc.documentName === "Item") {
             const desc = doc.system.description?.value || doc.system.description || "";
-            
-            // Check if it's "Image Only" (Empty description but has valid image)
-            const hasDesc = desc && desc.replace(/<[^>]*>/g, "").trim().length > 0;
-            const hasImg = imgSrc && imgSrc !== "icons/svg/mystery-man.svg";
-
-            if (!hasDesc && hasImg) {
-                // Generate a text page that acts as an image page, to support the link
-                content = `
-                    <div style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px;">
-                        <img src="${imgSrc}" style="max-width: 100%; height: auto; border: none; box-shadow: none; margin-bottom: 10px;">
-                        ${originLink}
-                    </div>
-                `;
-                isImageOnly = true; 
-            } else {
-                content = `
-                    <div class="dh-custom-header">
-                        <h1>${doc.name}</h1>
-                        <div class="dh-custom-meta">${doc.type.toUpperCase()}</div>
-                    </div>
-                    ${hasImg ? `<div class="dh-img-container"><img src="${imgSrc}" class="dh-item-img"></div>` : ""}
-                    <div class="dh-custom-body">
-                        ${desc || "No description provided."}
-                    </div>
-                    ${originLink}
-                `;
+            if (desc) {
+                bodyHtml = `<div class="dh-custom-body">${desc}</div>`;
+            } else if (!hasImg) {
+                bodyHtml = `<div class="dh-custom-body">No description provided.</div>`;
             }
         } 
         
         // B. ACTORS
         else if (doc.documentName === "Actor") {
             const bio = doc.system.biography?.value || doc.system.details?.biography || "";
-            const tier = doc.system.tier ?? "";
-            const level = doc.system.level ?? "";
-            const hasImg = imgSrc && imgSrc !== "icons/svg/mystery-man.svg";
             
-            let stats = "";
-            if (doc.type === "character") {
-                stats = `<strong>Level:</strong> ${level} | <strong>Class:</strong> ${doc.system.class || "-"}`;
-            } else {
-                 stats = `<strong>Tier:</strong> ${tier} | <strong>Type:</strong> ${doc.type}`;
+            // Logic: Hide stats for Adversaries/Environments as requested
+            let showStats = true;
+            if (doc.type === "adversary" || doc.type === "environment") {
+                showStats = false;
             }
 
-            content = `
-                <h1>${doc.name}</h1>
-                <div class="dh-adversary-stats">${stats}</div>
-                ${hasImg ? `<div class="dh-img-container"><img src="${imgSrc}" class="dh-item-img"></div>` : ""}
-                <div class="item-description">${bio}</div>
-                ${originLink}
+            if (showStats) {
+                const tier = doc.system.tier ?? "";
+                const level = doc.system.level ?? "";
+                
+                let statsText = "";
+                if (doc.type === "character") {
+                    statsText = `<strong>Level:</strong> ${level} | <strong>Class:</strong> ${doc.system.class || "-"}`;
+                } else {
+                    statsText = `<strong>Tier:</strong> ${tier} | <strong>Type:</strong> ${doc.type}`;
+                }
+
+                bodyHtml += `
+                    <div class="dh-adversary-stats">
+                        ${statsText}
+                    </div>`;
+            }
+
+            bodyHtml += `<div class="item-description">${bio}</div>`;
+        }
+
+        // --- 4. IMAGE (Last element) ---
+        let imageHtml = "";
+        if (hasImg) {
+            imageHtml = `
+                <div class="dh-img-container" style="margin-top: 30px; text-align: center;">
+                    <img src="${imgSrc}" class="dh-item-img" style="max-width: 100%; height: auto; border: none; box-shadow: none;">
+                </div>
             `;
         }
 
-        // We use type: "text" for everything now to ensure we can render the UUID link
+        // --- CONSTRUCT CONTENT ---
+        content = headerHtml + linkHtml + bodyHtml + imageHtml;
+
+        // --- FLAG DETERMINATION ---
+        let category = "Custom";
+        
+        // Determine category primarily by type
+        if (doc.type) {
+            if (doc.type === "domainCard") {
+                category = "Domain Card";
+            } else {
+                // Capitalize first letter for all other types (Armor, Weapon, Class, Adversary, etc.)
+                category = doc.type.charAt(0).toUpperCase() + doc.type.slice(1);
+            }
+        } 
+        // Fallback to "Custom Image" only if there is no type AND no text description but there is an image
+        // (Note: Since Item/Actor always have a type, this fallback is rare, but good for safety)
+        else if (hasImg && !bodyHtml) {
+            category = "Custom Image";
+        }
+
+        // Generate Page
         return {
             name: title,
             type: "text", 
             text: { content: content, format: 1 },
-            title: { show: !isImageOnly }, // Hide title if it's the fake image page
-            // CHANGE: Apply original document permissions to the new page
+            title: { show: false }, 
             ownership: permissions,
             flags: { 
                 "daggerheart-quickrules": { 
-                    category: isImageOnly ? "Custom Image" : (doc.type ? doc.type.charAt(0).toUpperCase() + doc.type.slice(1) : "Custom")
+                    category: category
                 } 
             }
         };
