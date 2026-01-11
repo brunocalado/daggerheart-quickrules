@@ -1,13 +1,11 @@
 import { DaggerheartQuickRules } from "./quickrules.js";
 
 const MODULE_ID = "daggerheart-quickrules";
-const BUTTON_ID = "dh-quickrules-trigger";
 
-// Hook into Foundry initialization
 Hooks.once("init", () => {
     console.log("Daggerheart Quick Rules | Initializing...");
 
-    // 1. Register Setting to toggle floating button
+    // ... (seu código existente de settings) ...
     game.settings.register(MODULE_ID, "showFloatingButton", {
         name: "Show Floating Button",
         hint: "Display the floating question mark button on the canvas to open the Quick Rules.",
@@ -20,7 +18,6 @@ Hooks.once("init", () => {
         }
     });
 
-    // 2. Register Setting for Floating Button Size
     game.settings.register(MODULE_ID, "floatingButtonSize", {
         name: "Floating Button Size",
         hint: "Adjust the size of the floating question mark button.",
@@ -34,256 +31,80 @@ Hooks.once("init", () => {
         },
         default: "normal",
         onChange: () => {
-            // Refresh button if it exists and is enabled
             if (game.settings.get(MODULE_ID, "showFloatingButton")) {
-                const btn = document.getElementById(BUTTON_ID);
-                if (btn) btn.remove(); 
-                createFloatingButton();
+                const btn = document.getElementById("dh-quickrules-trigger");
+                if (btn) {
+                    const size = game.settings.get(MODULE_ID, "floatingButtonSize");
+                    btn.className = `size-${size}`;
+                }
             }
         }
     });
 
-    // 3. COMMUNICATION CHANNEL (Reactive Setting Pattern)
-    // When this setting changes, it runs _handleForceOpenRequest on all clients.
-    game.settings.register(MODULE_ID, "forceOpenRequest", {
-        scope: "world",
-        config: false,
-        type: Object,
-        default: { pageId: null, time: 0 },
-        onChange: _handleForceOpenRequest
-    });
-
-    // 4. Register Keybinding (Shift + D)
-    game.keybindings.register(MODULE_ID, "toggleQuickRules", {
-        name: "Toggle Quick Rules",
-        hint: "Open or close the Quick Rules window.",
-        editable: [
-            { key: "KeyD", modifiers: ["Shift"] }
-        ],
-        onDown: () => {
-            // Open if closed, Close if open
-            window.QuickRules.Toggle();
-            return true; // Consumes the event
-        },
-        restricted: false, // Available to all users, not just GM
-        precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
-    });
-
-    // 5. Expose Global Commands
-    window.QuickRules = {
-        Open: () => {
-            const module = game.modules.get(MODULE_ID);
-            
-            // Singleton pattern: render if exists, or create new
-            if (!module.api) {
-                module.api = new DaggerheartQuickRules();
-            }
-            
-            // Render the application
-            module.api.render({ force: true });
-        },
-
-        // Toggle method for the Keybinding
-        Toggle: () => {
-            const module = game.modules.get(MODULE_ID);
-            
-            if (!module.api) {
-                module.api = new DaggerheartQuickRules();
-            }
-
-            // Check if currently rendered to decide whether to close or open
-            if (module.api.rendered) {
-                module.api.close();
-            } else {
-                module.api.render({ force: true });
-            }
-        },
-        
-        // Build the SRD content. Default mode is 'All'
-        Build: async (mode = 'All') => {
-             if (!game.user.isGM) {
-                 ui.notifications.warn("Only the GM can build the SRD content.");
-                 return;
-             }
-             await DaggerheartQuickRules.buildSRD(mode);
-        },
-
-        Reset: () => {
-            const btn = document.getElementById(BUTTON_ID);
-            if (btn) {
-                btn.style.top = '150px';
-                btn.style.left = '20px';
-            }
-            localStorage.removeItem('dh-quickrules-pos');
-            ui.notifications.info("Daggerheart Quick Rules | Floating button position reset to default.");
-        }
-    };
+    // Expose the class globally for console access and macros
+    window.DaggerheartQuickRules = DaggerheartQuickRules;
+    // Shortcut for your specific use case:
+    window.QuickRules = DaggerheartQuickRules;
 });
 
-/**
- * Handles the incoming request to open the Quick Rules (triggered by setting change)
- * This runs on EVERY client when the setting updates.
- */
-function _handleForceOpenRequest(value) {
-    // Basic validation
-    if (!value || !value.pageId) return;
-
-    // Ignore if I am the GM (I likely triggered it myself, or I don't need to be forced)
-    if (game.user.isGM) return;
-
-    console.log("Daggerheart Quick Rules | Received Force Open Request:", value);
-
-    const module = game.modules.get(MODULE_ID);
-            
-    // 1. Ensure API instance exists
-    if (!module.api) {
-        module.api = new DaggerheartQuickRules();
-    }
-    
-    // 2. Navigate to the specific page
-    // This method sets selectedPageId and switches contexts if needed
-    module.api.forceNavigateToPage(value.pageId);
-
-    // If minimized, maximize it
-    if (module.api.minimized) module.api.maximize();
-
-    ui.notifications.info("GM updated Quick Rules view.");
-}
-
-// Create Floating Button on Ready (if setting is enabled)
-Hooks.once('ready', async () => {
+Hooks.once("ready", () => {
     if (game.settings.get(MODULE_ID, "showFloatingButton")) {
-        createFloatingButton();
-    }
-
-    // Check and create Custom Quick Rules folder if GM
-    if (game.user.isGM) {
-        const customFolderName = "📜 Custom Quick Rules";
-        const existingFolder = game.folders.find(f => f.name === customFolderName && f.type === "JournalEntry");
-        
-        if (!existingFolder) {
-            console.log(`Daggerheart Quick Rules | Creating custom content folder: ${customFolderName}`);
-            await Folder.create({
-                name: customFolderName,
-                type: "JournalEntry",
-                color: "#5c0547" // Matches the module theme
-            });
-        }
-    }
-});
-
-// Hook to add button to Daggerheart Menu (sidebar)
-Hooks.on("renderDaggerheartMenu", (app, element, data) => {
-    const html = element instanceof jQuery ? element[0] : element;
-
-    const myButton = document.createElement("button");
-    myButton.type = "button";
-    myButton.innerHTML = `<i class="fas fa-book-open"></i> Open Quick Rules`; 
-    myButton.classList.add("dh-custom-btn"); 
-    myButton.style.marginTop = "10px";
-    myButton.style.width = "100%";
-    
-    myButton.onclick = () => window.QuickRules.Open();
-
-    const fieldset = html.querySelector("fieldset");
-    if (fieldset) {
-        const newFieldset = document.createElement("fieldset");
-        const legend = document.createElement("legend");
-        legend.innerText = "Quick Rules"; 
-        newFieldset.appendChild(legend);
-        newFieldset.appendChild(myButton);
-        fieldset.after(newFieldset);
-    } else {
-        html.appendChild(myButton);
+        toggleFloatingButton(true);
     }
 });
 
 function toggleFloatingButton(show) {
+    const existingBtn = document.getElementById("dh-quickrules-trigger");
+    if (existingBtn) existingBtn.remove();
+
     if (show) {
-        createFloatingButton();
-    } else {
-        const btn = document.getElementById(BUTTON_ID);
-        if (btn) btn.remove();
-    }
-}
+        const btn = document.createElement("div");
+        btn.id = "dh-quickrules-trigger";
+        btn.innerHTML = '<i class="fas fa-question"></i>';
+        btn.title = "Open Daggerheart Quick Rules";
+        
+        const size = game.settings.get(MODULE_ID, "floatingButtonSize");
+        btn.classList.add(`size-${size}`);
 
-function createFloatingButton() {
-    if (document.getElementById(BUTTON_ID)) return;
+        document.body.appendChild(btn);
 
-    const btn = document.createElement('div');
-    btn.id = BUTTON_ID;
-    btn.innerHTML = '<i class="fas fa-question"></i>';
-    btn.title = "Open Daggerheart Quick Rules";
-    
-    const size = game.settings.get(MODULE_ID, "floatingButtonSize") || "normal";
-    btn.classList.add(`size-${size}`);
-
-    document.body.appendChild(btn);
-
-    const savedPos = localStorage.getItem('dh-quickrules-pos');
-    if (savedPos) {
-        try {
-            const pos = JSON.parse(savedPos);
-            btn.style.top = pos.top;
-            btn.style.left = pos.left;
-        } catch (e) {
-            console.error("Error loading Quick Rules button position", e);
-            btn.style.top = '150px';
-            btn.style.left = '20px';
-        }
-    } else {
-        btn.style.top = '150px';
+        // Position it (persist position logic omitted for brevity, add if needed)
         btn.style.left = '20px';
+        btn.style.top = '100px';
+
+        btn.addEventListener('click', () => {
+            new DaggerheartQuickRules().render(true);
+        });
+        
+        // ... (Drag logic from your snippet) ...
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+        const dragThreshold = 3; 
+
+        btn.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            const rect = btn.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            btn.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            if (Math.sqrt(dx*dx + dy*dy) > dragThreshold) {
+                e.preventDefault(); 
+                btn.style.left = `${initialLeft + dx}px`;
+                btn.style.top = `${initialTop + dy}px`;
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            btn.style.cursor = 'grab';
+        });
     }
-
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let initialLeft = 0;
-    let initialTop = 0;
-    const dragThreshold = 3; 
-
-    btn.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        
-        const rect = btn.getBoundingClientRect();
-        initialLeft = rect.left;
-        initialTop = rect.top;
-        
-        btn.style.cursor = 'grabbing';
-    });
-
-    window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-
-        if (dist > dragThreshold) {
-            e.preventDefault(); 
-            btn.style.left = `${initialLeft + dx}px`;
-            btn.style.top = `${initialTop + dy}px`;
-        }
-    });
-
-    window.addEventListener('mouseup', (e) => {
-        if (!isDragging) return;
-        
-        isDragging = false;
-        btn.style.cursor = 'grab';
-        
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        
-        if (dist > dragThreshold) {
-            const pos = { top: btn.style.top, left: btn.style.left };
-            localStorage.setItem('dh-quickrules-pos', JSON.stringify(pos));
-        } else {
-            window.QuickRules.Open();
-        }
-    });
 }

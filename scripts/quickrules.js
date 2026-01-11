@@ -1,4 +1,5 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+import { DaggerheartAddMyStuff } from "./addmystuff.js";
 
 /**
  * Main Quick Rules Application for Daggerheart
@@ -54,6 +55,13 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             template: "modules/daggerheart-quickrules/templates/screen.hbs"
         }
     };
+
+    /**
+     * OPENS THE ADD MY STUFF WINDOW
+     */
+    static async AddMyStuff() {
+        new DaggerheartAddMyStuff().render(true);
+    }
 
     /** * Public method to navigate to a specific page 
      * Now uses DOM Swapping instead of full re-render for performance
