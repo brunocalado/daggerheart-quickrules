@@ -56,10 +56,48 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
     };
 
+    /* --- STATIC SHORTCUTS FOR MACROS/CONSOLE --- */
+
+    /**
+     * Open the Quick Rules Window
+     */
+    static Open() {
+        // Check if already open to avoid duplicates or just focus
+        const existing = Object.values(ui.windows).find(w => w.id === "daggerheart-quickrules");
+        if (existing) {
+            existing.render(true, { focus: true });
+        } else {
+            new DaggerheartQuickRules().render(true);
+        }
+    }
+
+    /**
+     * Alias for buildSRD
+     */
+    static async Build(mode = 'All') {
+        return this.buildSRD(mode);
+    }
+
+    /**
+     * Reset user flags and close window
+     */
+    static async Reset() {
+        await game.user.unsetFlag("daggerheart-quickrules", "favorites");
+        await game.user.unsetFlag("daggerheart-quickrules", "filters");
+        await game.user.unsetFlag("daggerheart-quickrules", "fontSize");
+        await game.user.unsetFlag("daggerheart-quickrules", "theme");
+        await game.user.unsetFlag("daggerheart-quickrules", "deepSearch");
+        
+        const existing = Object.values(ui.windows).find(w => w.id === "daggerheart-quickrules");
+        if (existing) existing.close();
+        
+        ui.notifications.info("Daggerheart Quick Rules | User settings reset.");
+    }
+
     /**
      * OPENS THE ADD MY STUFF WINDOW
      */
-    static async AddMyStuff() {
+    static AddMyStuff() {
         new DaggerheartAddMyStuff().render(true);
     }
 
@@ -1390,20 +1428,23 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             ? `<div class="dh-img-container"><img src="${item.img}" class="dh-item-img" data-tooltip="${item.name}"></div>` 
                             : "";
                         
-                        const buttonHtml = `
-                            <div style="margin-top: 20px; text-align: center; border-top: 1px solid #4b0000; padding-top: 10px; clear: both;">
-                                <p>@UUID[${item.uuid}]{Open ${item.name} Sheet}</p>
+                        // NEW HEADER LOGIC
+                        const headerHtml = `
+                            <div class="dh-custom-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dcb15d; margin-bottom: 20px; padding-bottom: 5px;">
+                                <h1 style="border-bottom: none; margin: 0; padding: 0; flex: 1; line-height: 1;">${item.name}</h1>
+                                <span style="flex: 0 0 auto; margin-left: 10px; font-size: 0.85em; font-family: 'Signika', sans-serif;">
+                                    @UUID[${item.uuid}]{Open ${item.name}}
+                                </span>
                             </div>
                         `;
                         
                         const pageContent = `
-                            <h1>${item.name}</h1>
+                            ${headerHtml}
                             ${statsHtml}
                             ${beastformHtml}
                             <div class="item-description">${desc}</div>
                             ${motivesHtml}
                             ${featuresHtml}
-                            ${buttonHtml}
                             ${imgHtml}
                         `;
                         
@@ -1443,9 +1484,19 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             continue;
                         }
                         
+                        // NEW HEADER FOR LOOT TABLES
+                        const headerHtml = `
+                            <div class="dh-custom-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dcb15d; margin-bottom: 20px; padding-bottom: 5px;">
+                                <h1 style="border-bottom: none; margin: 0; padding: 0; flex: 1; line-height: 1;">${cleanName}</h1>
+                                <span style="flex: 0 0 auto; margin-left: 10px; font-size: 0.85em; font-family: 'Signika', sans-serif;">
+                                    @UUID[${table.uuid}]{Open Original RollTable}
+                                </span>
+                            </div>
+                        `;
+
                         // Build HTML Table
                         let tableHtml = `
-                            <h1>${cleanName}</h1>
+                            ${headerHtml}
                             <table class="dh-simple-table">
                                 <thead>
                                     <tr>
@@ -1488,13 +1539,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
                         tableHtml += `</tbody></table>`;
                         
-                        // Add Button to open original table
-                        tableHtml += `
-                            <div style="margin-top: 20px; text-align: center; border-top: 1px solid #4b0000; padding-top: 10px;">
-                                <p>@UUID[${table.uuid}]{Open Original RollTable}</p>
-                            </div>
-                        `;
-
                         newPagesData.push({
                             name: cleanName,
                             text: { content: tableHtml, format: 1 },
