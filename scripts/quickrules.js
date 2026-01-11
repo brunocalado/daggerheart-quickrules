@@ -459,6 +459,9 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             const type = page.getFlag("daggerheart-quickrules", "type");
             const sourcePack = page.getFlag("daggerheart-quickrules", "sourcePack");
             
+            // --- NEW: Retrieve Category Flag ---
+            const category = page.getFlag("daggerheart-quickrules", "category");
+            
             const isCompendium = sourcePack && compendiumPacks.includes(sourcePack);
             
             // Custom pages are those loaded from the custom folder, which naturally lack our module flags.
@@ -472,7 +475,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 active: isActive,
                 isFavorite: isFav,
                 isCompendium: isCompendium,
-                isCustom: isCustom
+                isCustom: isCustom,
+                category: category // Pass category to template
             });
         }
 
@@ -1076,6 +1080,49 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         const desc = rawDesc || (item.type === "beastform" ? "" : "No description available.");
                         let itemName = formatTitle(item.name);
                         
+                        // --- CATEGORY FLAG LOGIC ---
+                        let categoryFlag = null;
+                        const t = item.type;
+                        
+                        switch (packName) {
+                            case "daggerheart.classes":
+                                if (t === "class") categoryFlag = "Class";
+                                if (t === "feature") categoryFlag = "Class Feature";
+                                if (t === "loot") categoryFlag = "Class Item";
+                                break;
+                            case "daggerheart.subclasses":
+                                if (t === "subclass") categoryFlag = "Subclass";
+                                if (t === "feature") categoryFlag = "Subclass Feature";
+                                break;
+                            case "daggerheart.domains":
+                                if (t === "domainCard") categoryFlag = "Domain Card";
+                                break;
+                            case "daggerheart.ancestries":
+                                if (t === "ancestry") categoryFlag = "Ancestry";
+                                if (t === "feature") categoryFlag = "Ancestry Feature";
+                                break;
+                            case "daggerheart.communities":
+                                if (t === "community") categoryFlag = "Community";
+                                if (t === "feature") categoryFlag = "Community Feature";
+                                break;
+                            case "daggerheart.weapons":
+                                if (t === "weapon") categoryFlag = "Weapon";
+                                break;
+                            case "daggerheart.armors":
+                                if (t === "armor") categoryFlag = "Armor";
+                                break;
+                            case "daggerheart.consumables":
+                                if (t === "consumable") categoryFlag = "Consumable";
+                                break;
+                            case "daggerheart.loot":
+                                if (t === "loot") categoryFlag = "Loot";
+                                break;
+                            case "daggerheart.beastforms":
+                                if (t === "beastform") categoryFlag = "Beastform";
+                                if (t === "feature") categoryFlag = "Beastform Feature";
+                                break;
+                        }
+
                         // --- BOOK OF... DOMAINS LOGIC ---
                         if (packName === "daggerheart.domains" && item.name.includes("Book of")) {
                             try {
@@ -1109,7 +1156,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                                             name: pageTitle,
                                             text: { content: pageHtml, format: 1 },
                                             title: { show: false, level: 1 },
-                                            flags: { "daggerheart-quickrules": { sourcePack: packName } }
+                                            flags: { "daggerheart-quickrules": { sourcePack: packName, category: "Spell" } }
                                         });
                                     }
                                 }
@@ -1325,7 +1372,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             name: itemName,
                             text: { content: pageContent, format: 1 },
                             title: { show: false, level: 1 },
-                            flags: { "daggerheart-quickrules": { sourcePack: packName } }
+                            flags: { "daggerheart-quickrules": { sourcePack: packName, category: categoryFlag } }
                         });
                     }
                 } catch (err) {

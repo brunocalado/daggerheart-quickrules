@@ -301,6 +301,27 @@
     color: #8B6914; 
 }
 
+/* Tag Styles */
+.dh-tag {
+    font-size: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    padding: 1px 4px;
+    margin-left: 6px;
+    color: #e5c377; /* Gold accent to match theme */
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Tag Light Mode */
+.dh-quickrules-container.light .dh-tag {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #8B6914;
+}
+
 /* --- Content Area --- */
 .dh-content-area {
     flex: 1;

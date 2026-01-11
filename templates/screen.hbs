@@ -82,6 +82,9 @@
                                     {{#if page.isCompendium}}<i class="fas fa-book-atlas"></i> {{/if}}
                                     {{#if page.isCustom}}<i class="fas fa-feather-alt"></i> {{/if}}
                                     {{page.name}}
+                                    {{#if page.category}}
+                                        <span class="dh-tag">{{page.category}}</span>
+                                    {{/if}}
                                 </button>
                             </li>
                         {{/each}}
