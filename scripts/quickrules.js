@@ -1299,17 +1299,17 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
                     for (const table of tables) {
                         let originalName = table.name;
-                        
-                        // 1. Remove Prefix "XX - " (e.g. "02 - ")
-                        let cleanName = originalName.replace(/^\d+\s*-\s*/, "");
+                        let cleanName = "";
 
-                        // 2. Invert "Part A - Part B" to "Part B - Part A"
-                        // Specifically targets patterns like "Common (2d12) - Consumable" -> "Consumable - Common (2d12)"
-                        if (cleanName.includes(" - ")) {
-                            const parts = cleanName.split(" - ");
-                            if (parts.length === 2) {
-                                cleanName = `${parts[1]} - ${parts[0]}`;
-                            }
+                        // --- NEW FILTERING LOGIC ---
+                        // Only process tables that contain "All Consumables" or "All Loot"
+                        if (originalName.includes("All Consumables")) {
+                            cleanName = "Consumable Table";
+                        } else if (originalName.includes("All Loot")) {
+                            cleanName = "Loot Table";
+                        } else {
+                            // Skip all other tables (Common/Uncommon/Rare etc.)
+                            continue;
                         }
                         
                         // Build HTML Table
