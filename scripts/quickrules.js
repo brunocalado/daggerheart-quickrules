@@ -1652,7 +1652,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             name: `${domainName} - All Cards`,
                             text: { content: summaryHtml, format: 1 },
                             title: { show: false, level: 1 },
-                            flags: { "daggerheart-quickrules": { sourcePack: "daggerheart.domains", category: "Domain List" } }
+                            flags: { "daggerheart-quickrules": { type: "rule" } } // Changed to Rule Type
                         });
                     }
                 }
