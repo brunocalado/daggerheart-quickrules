@@ -438,6 +438,15 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
 
         // 5. Grouping for Sidebar
+        
+        // Define list of packs that should have the icon
+        const compendiumPacks = [
+            "daggerheart.classes", "daggerheart.subclasses", "daggerheart.domains", 
+            "daggerheart.ancestries", "daggerheart.communities", "daggerheart.beastforms",
+            "daggerheart.weapons", "daggerheart.armors", "daggerheart.consumables", 
+            "daggerheart.loot", "daggerheart.adversaries", "daggerheart.environments"
+        ];
+
         const grouped = {};
         for (const page of displayPages) {
             const firstLetter = page.name.charAt(0).toUpperCase();
@@ -446,11 +455,16 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             const isActive = this.selectedPageId === page.id;
             const isFav = favorites.includes(page.id);
             
+            // Check for sourcePack flag
+            const sourcePack = page.getFlag("daggerheart-quickrules", "sourcePack");
+            const isCompendium = sourcePack && compendiumPacks.includes(sourcePack);
+            
             grouped[firstLetter].push({
                 id: page.id,
                 name: page.name,
                 active: isActive,
-                isFavorite: isFav
+                isFavorite: isFav,
+                isCompendium: isCompendium
             });
         }
 
@@ -804,8 +818,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         const compendiumList = [
             "daggerheart.classes", "daggerheart.subclasses", "daggerheart.domains", 
             "daggerheart.ancestries", "daggerheart.communities", "daggerheart.armors", 
-            "daggerheart.consumables", "daggerheart.loot", "daggerheart.adversaries", 
-            "daggerheart.environments", "daggerheart.beastforms"
+            "daggerheart.weapons", "daggerheart.consumables", "daggerheart.loot", 
+            "daggerheart.adversaries", "daggerheart.environments", "daggerheart.beastforms"
         ];
 
         console.log(`Daggerheart QuickRules | Build Started (${mode}).`);
@@ -1290,7 +1304,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
             // --- LOOT TABLES PROCESSING ---
             try {
-                const lootTablePackName = "daggerheart-quickrules.loot-and-consumable";
+                const lootTablePackName = "daggerheart.rolltables";
                 const lootPack = game.packs.get(lootTablePackName);
                 
                 if (lootPack) {
@@ -1302,10 +1316,10 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         let cleanName = "";
 
                         // --- NEW FILTERING LOGIC ---
-                        // Only process tables that contain "All Consumables" or "All Loot"
-                        if (originalName.includes("All Consumables")) {
+                        // Only process tables named specifically "Consumables" or "Loot"
+                        if (originalName === "Consumables") {
                             cleanName = "Consumable Table";
-                        } else if (originalName.includes("All Loot")) {
+                        } else if (originalName === "Loot") {
                             cleanName = "Loot Table";
                         } else {
                             // Skip all other tables (Common/Uncommon/Rare etc.)

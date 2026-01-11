@@ -64,19 +64,6 @@
       "path": "packs/macros",
       "system": "daggerheart",
       "ownership": {
-        "PLAYER": "NONE",
-        "ASSISTANT": "OWNER"
-      },
-      "flags": {},
-      "banner": "modules/daggerheart-quickrules/assets/images/banner.webp" 
-    },
-    {
-      "label": "Loot and Consumable",
-      "type": "RollTable",
-      "name": "loot-and-consumable",
-      "path": "packs/loot-and-consumable",
-      "system": "daggerheart",
-      "ownership": {
         "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
       },
@@ -92,8 +79,7 @@
       "color": "#5c0547",
       "packs": [        
         "quickrules",
-        "macros",
-        "loot-and-consumable"
+        "macros"
       ],
       "folders": []
     }

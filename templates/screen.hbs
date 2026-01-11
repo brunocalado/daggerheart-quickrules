@@ -79,7 +79,7 @@
                                         class="dh-page-btn {{#if page.active}}active{{/if}}"
                                         data-action="viewPage" 
                                         data-page-id="{{page.id}}">
-                                    {{page.name}}
+                                    {{#if page.isCompendium}}<i class="fas fa-book-atlas"></i> {{/if}}{{page.name}}
                                 </button>
                             </li>
                         {{/each}}
