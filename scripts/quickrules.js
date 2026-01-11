@@ -1607,6 +1607,58 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             } catch (e) {
                 console.error("Daggerheart QuickRules | Error building Adversary List:", e);
             }
+
+            // --- DOMAIN SUMMARY PAGES ---
+            try {
+                const domainPack = game.packs.get("daggerheart.domains");
+                if (domainPack) {
+                    console.log("Daggerheart QuickRules | Building Domain Summaries...");
+                    const allCards = await domainPack.getDocuments();
+                    const domains = ["Arcana", "Blade", "Bone", "Codex", "Grace", "Midnight", "Sage", "Splendor", "Valor"];
+
+                    for (const domainName of domains) {
+                        const cards = allCards.filter(i => {
+                            const d = i.system.domain || "";
+                            return d.toLowerCase() === domainName.toLowerCase() && i.type === "domainCard";
+                        });
+
+                        if (cards.length === 0) continue;
+
+                        let summaryHtml = `<h1>${domainName} - All Cards</h1>`;
+
+                        for (let lvl = 1; lvl <= 10; lvl++) {
+                            const levelCards = cards.filter(c => Number(c.system.level) === lvl);
+                            
+                            if (levelCards.length > 0) {
+                                summaryHtml += `<h2>Level ${lvl}</h2>`;
+                                summaryHtml += `<ul class="dh-sub-list">`;
+                                
+                                levelCards.sort((a, b) => a.name.localeCompare(b.name));
+
+                                for (const card of levelCards) {
+                                    let cleanDesc = (card.system.description?.value || card.system.description || "").replace(/<[^>]+>/g, ' ').trim();
+                                    
+                                    summaryHtml += `
+                                        <li style="margin-bottom: 8px;">
+                                            <strong>${card.name}:</strong> ${cleanDesc} 
+                                            <span style="white-space: nowrap;">@UUID[${card.uuid}]{Open}</span>
+                                        </li>`;
+                                }
+                                summaryHtml += `</ul>`;
+                            }
+                        }
+
+                        newPagesData.push({
+                            name: `${domainName} - All Cards`,
+                            text: { content: summaryHtml, format: 1 },
+                            title: { show: false, level: 1 },
+                            flags: { "daggerheart-quickrules": { sourcePack: "daggerheart.domains", category: "Domain List" } }
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Daggerheart QuickRules | Error building Domain Summaries:", err);
+            }
         }
 
         if (newPagesData.length > 0) {
