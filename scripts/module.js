@@ -43,13 +43,45 @@ Hooks.once("init", () => {
 
     // Expose the class globally for console access and macros
     window.DaggerheartQuickRules = DaggerheartQuickRules;
-    // Shortcut for your specific use case:
+    // Shortcut for your specific test case:
     window.QuickRules = DaggerheartQuickRules;
 });
 
 Hooks.once("ready", () => {
     if (game.settings.get(MODULE_ID, "showFloatingButton")) {
         toggleFloatingButton(true);
+    }
+});
+
+// Hook to add button to Daggerheart Menu (sidebar)
+Hooks.on("renderDaggerheartMenu", (app, element, data) => {
+    const html = element instanceof jQuery ? element[0] : element;
+
+    const myButton = document.createElement("button");
+    myButton.type = "button";
+    myButton.innerHTML = `<i class="fas fa-book-open"></i> Open Quick Rules`; 
+    myButton.classList.add("dh-custom-btn"); 
+    myButton.style.marginTop = "10px";
+    myButton.style.width = "100%";
+    
+    myButton.onclick = () => {
+        if (window.QuickRules) {
+            window.QuickRules.Open();
+        } else {
+            ui.notifications.error("Quick Rules module not fully initialized.");
+        }
+    };
+
+    const fieldset = html.querySelector("fieldset");
+    if (fieldset) {
+        const newFieldset = document.createElement("fieldset");
+        const legend = document.createElement("legend");
+        legend.innerText = "Quick Rules"; 
+        newFieldset.appendChild(legend);
+        newFieldset.appendChild(myButton);
+        fieldset.after(newFieldset);
+    } else {
+        html.appendChild(myButton);
     }
 });
 
