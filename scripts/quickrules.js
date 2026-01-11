@@ -1118,10 +1118,10 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             }
                         }
 
-                        // --- BEASTFORMS: PREFIX FEATURES ---
-                        if (packName === "daggerheart.beastforms" && item.type === "feature") {
-                            itemName = "Beastform Feature: " + itemName;
-                        }
+                        // --- REMOVED: BEASTFORMS: PREFIX FEATURES ---
+                        // if (packName === "daggerheart.beastforms" && item.type === "feature") {
+                        //     itemName = "Beastform Feature: " + itemName;
+                        // }
 
                         // Adversary Specific Data
                         let statsHtml = "";
@@ -1132,8 +1132,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         // --- BEASTFORMS: MAIN ITEMS ---
                         try {
                             if (packName === "daggerheart.beastforms" && item.type === "beastform") {
-                                 // Add Beastform Prefix to Page Name
-                                 itemName = "Beastform: " + itemName;
+                                 // --- REMOVED: Add Beastform Prefix to Page Name ---
+                                 // itemName = "Beastform: " + itemName;
 
                                  const sys = item.system;
                                  if (!sys) continue;
