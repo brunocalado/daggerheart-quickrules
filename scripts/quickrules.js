@@ -787,7 +787,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         content = content.replace(/<h([1-6])(.*?)>/gi, (match, level, attributes) => {
             return `<h${level} ${attributes} style="color: #dcb15d !important; border-bottom: 1px solid #5e4b2a; margin-top: 10px;">`;
         });
-        content = content.replace('class="dh-item-img"', 'style="float: right; max-width: 100px; border: 1px solid #C9A060; margin-left: 10px; border-radius: 4px;"');
+        content = content.replace('class="dh-item-img"', 'style="display: block; margin: 10px auto; max-width: 150px; border: 1px solid #C9A060; border-radius: 4px; margin-bottom: 8px;"');
 
         const styles = {
             card: `border: 2px solid #C9A060; border-radius: 8px; overflow: hidden; background: #1a1a1a; margin-bottom: 10px;`,
@@ -1176,6 +1176,29 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         } catch (beastErr) {
                             console.error(`Daggerheart QuickRules | Error processing Beastform ${item.name}:`, beastErr);
                             // Continue to next item without breaking the build
+                        }
+
+                        // DOMAINS SPECIFIC DATA
+                        if (packName === "daggerheart.domains") {
+                            const sys = item.system;
+                            // Helper para capitalizar
+                            const cap = (s) => s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : "-";
+                            
+                            const type = cap(sys.type);
+                            const domain = cap(sys.domain);
+                            const level = sys.level ?? "-";
+                            const recallCost = sys.recallCost ?? "-";
+                            
+                            statsHtml = `
+                                <div class="dh-adversary-stats" style="border-bottom: 0; padding-bottom: 0; margin-bottom: 5px;">
+                                    <span class="dh-stat-value">${type}</span> &nbsp;-&nbsp; 
+                                    <span class="dh-stat-value">${domain}</span> &nbsp;-&nbsp; 
+                                    <strong>Level:</strong> <span class="dh-stat-value">${level}</span>
+                                </div>
+                                <div class="dh-adversary-stats">
+                                    <strong>Recall Cost:</strong> <span class="dh-stat-value">${recallCost}</span>
+                                </div>
+                            `;
                         }
 
                         // ADVERSARIES
