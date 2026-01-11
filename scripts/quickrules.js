@@ -96,16 +96,29 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         const fontSize = game.user.getFlag("daggerheart-quickrules", "fontSize") || 14;
         const theme = game.user.getFlag("daggerheart-quickrules", "theme") || "light";
         
-        // Enrich HTML (Async operation)
-        let enrichedContent = await foundry.applications.ux.TextEditor.enrichHTML(page.text.content, {
-            secrets: isGM, 
-            async: true,
-            relativeTo: page
-        });
+        // --- NEW: Handle Image Pages ---
+        const isImage = (page.type === "image");
+        let contentBody = "";
 
-        // --- NEW: Apply Highlighting if Deep Search is active ---
-        if (this.deepSearch && this.searchQuery) {
-            enrichedContent = this._highlightText(enrichedContent, this.searchQuery);
+        if (isImage) {
+            // Display only the image using full space
+            const src = page.src; 
+            contentBody = `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000;">
+                <img src="${src}" style="max-width: 100%; max-height: 100%; object-fit: contain; border: none; box-shadow: none;">
+            </div>`;
+        } else {
+            // Standard Text Content Enrichment
+            let enrichedContent = await foundry.applications.ux.TextEditor.enrichHTML(page.text.content, {
+                secrets: isGM, 
+                async: true,
+                relativeTo: page
+            });
+
+            // Apply Highlighting if Deep Search is active
+            if (this.deepSearch && this.searchQuery) {
+                enrichedContent = this._highlightText(enrichedContent, this.searchQuery);
+            }
+            contentBody = enrichedContent;
         }
 
         // 3. Calculate Next/Prev Logic
@@ -123,11 +136,13 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
 
         // 4. Construct HTML String (Replicating Handlebars structure for the Right Column)
-        // We use Template Literals to avoid re-running Handlebars compilation for the whole app
         
         const prevButtonState = prevRuleId ? '' : 'disabled style="opacity: 0.5; cursor: default;"';
         const nextButtonState = nextRuleId ? '' : 'disabled style="opacity: 0.5; cursor: default;"';
         
+        // Override container style if it is an image to remove padding and scrolling
+        const containerStyle = isImage ? 'style="padding: 0; overflow: hidden; display: flex; background: #000;"' : '';
+
         const controlsHtml = `
             <div class="dh-content-controls">
                 ${hasRuleOrder ? `
@@ -175,8 +190,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 </button>
             </div>
 
-            <div class="journal-entry-page">
-                ${enrichedContent}
+            <div class="journal-entry-page" ${containerStyle}>
+                ${contentBody}
             </div>
         `;
 
@@ -184,8 +199,12 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         const contentArea = this.element.querySelector('.dh-content-area');
         if (contentArea) {
             contentArea.innerHTML = controlsHtml;
-            // Re-apply font size to the container
-            contentArea.style.fontSize = `${fontSize}px`;
+            // Re-apply font size to the container if not image
+            if (!isImage) {
+                contentArea.style.fontSize = `${fontSize}px`;
+            } else {
+                contentArea.style.fontSize = ''; // Reset for image
+            }
         }
     }
 
@@ -394,7 +413,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             prevRuleId: null,
             nextRuleId: null,
             searchQuery: this.searchQuery,
-            deepSearch: this.deepSearch // Pass state to template
+            deepSearch: this.deepSearch, // Pass state to template
+            isImage: false // Default to false
         };
 
         if (displayPages.length === 0) return context;
@@ -422,18 +442,29 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 
                 context.activePageName = currentPageObj.name;
                 
-                let contentHTML = await foundry.applications.ux.TextEditor.enrichHTML(currentPageObj.text.content, {
-                    secrets: game.user.isGM, 
-                    async: true,
-                    relativeTo: currentPageObj
-                });
+                // --- NEW: Check if Page is Image Type ---
+                context.isImage = (currentPageObj.type === "image");
 
-                // --- NEW: Apply Highlighting if Deep Search is active (Initial Render) ---
-                if (this.deepSearch && this.searchQuery) {
-                    contentHTML = this._highlightText(contentHTML, this.searchQuery);
+                if (context.isImage) {
+                    // Display Image Content
+                    context.activeContent = `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000;">
+                        <img src="${currentPageObj.src}" style="max-width: 100%; max-height: 100%; object-fit: contain; border: none; box-shadow: none;">
+                    </div>`;
+                } else {
+                    // Standard Text Enrichment
+                    let contentHTML = await foundry.applications.ux.TextEditor.enrichHTML(currentPageObj.text.content, {
+                        secrets: game.user.isGM, 
+                        async: true,
+                        relativeTo: currentPageObj
+                    });
+
+                    // --- NEW: Apply Highlighting if Deep Search is active (Initial Render) ---
+                    if (this.deepSearch && this.searchQuery) {
+                        contentHTML = this._highlightText(contentHTML, this.searchQuery);
+                    }
+
+                    context.activeContent = contentHTML;
                 }
-
-                context.activeContent = contentHTML;
             }
         }
 

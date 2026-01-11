@@ -178,7 +178,8 @@
                 </button>
             </div>
 
-            <div class="journal-entry-page">
+            {{!-- Added container style override for images to remove padding --}}
+            <div class="journal-entry-page" {{#if isImage}}style="padding: 0; overflow: hidden; display: flex; background: #000;"{{/if}}>
                 {{{activeContent}}}
             </div>
         {{else}}
