@@ -246,71 +246,122 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
         // Get permissions from original document
         const permissions = doc.ownership || { default: 0 };
 
-        // --- 1. HEADER (Title + Type) ---
-        let subTitle = "";
-        if (doc.type) {
-            // Capitalize first letter of type
-            subTitle = doc.type.charAt(0).toUpperCase() + doc.type.slice(1);
-        }
-        
+        // --- 1. HEADER (Title + Open Button) ---
+        // Flex container adds the border bottom (replacing the old separator)
+        // H1 has border removed to avoid duplication
         const headerHtml = `
-            <div class="dh-custom-header">
-                <h1>${doc.name}</h1>
-                ${subTitle ? `<div class="dh-custom-meta">${subTitle}</div>` : ""}
+            <div class="dh-custom-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dcb15d; margin-bottom: 20px; padding-bottom: 5px;">
+                <h1 style="border-bottom: none; margin: 0; padding: 0; flex: 1; line-height: 1;">${doc.name}</h1>
+                <span style="flex: 0 0 auto; margin-left: 10px; font-size: 0.85em; font-family: 'Signika', sans-serif;">
+                    @UUID[${doc.uuid}]{Open ${doc.documentName}}
+                </span>
             </div>
         `;
 
-        // --- 2. LINK (Right after Header) ---
-        const linkHtml = `
-            <div style="margin: 10px 0 20px 0; text-align: center; border-bottom: 1px solid #4b0000; padding-bottom: 10px;">
-                <p>@UUID[${doc.uuid}]{Open ${doc.documentName}}</p>
-            </div>
-        `;
-
-        // --- 3. BODY (Stats & Description) ---
+        // --- 2. BODY (Stats, Description, Motives, Features) ---
         let bodyHtml = "";
         
-        // A. ITEMS
-        if (doc.documentName === "Item") {
-            const desc = doc.system.description?.value || doc.system.description || "";
-            if (desc) {
-                bodyHtml = `<div class="dh-custom-body">${desc}</div>`;
-            } else if (!hasImg) {
-                bodyHtml = `<div class="dh-custom-body">No description provided.</div>`;
-            }
-        } 
-        
-        // B. ACTORS
-        else if (doc.documentName === "Actor") {
-            const bio = doc.system.biography?.value || doc.system.details?.biography || "";
+        // --- ADVERSARIES & ENVIRONMENTS (Rich Stats Logic) ---
+        if (doc.type === "adversary" || doc.type === "environment") {
+            const sys = doc.system;
+            const tier = sys.tier ?? "-";
+            const type = sys.type ? String(sys.type).charAt(0).toUpperCase() + String(sys.type).slice(1) : "-";
+            const diff = sys.difficulty ?? "-";
             
-            // Logic: Hide stats for Adversaries/Environments as requested
-            let showStats = true;
-            if (doc.type === "adversary" || doc.type === "environment") {
-                showStats = false;
-            }
+            // Build Stats Block identical to SRD
+            bodyHtml += `
+                <div class="dh-adversary-stats" style="border-bottom: 0; padding-bottom: 0; margin-bottom: 5px;">
+                    <strong>Tier:</strong> <span class="dh-stat-value">${tier}</span> &nbsp;|&nbsp; 
+                    <strong>Type:</strong> <span class="dh-stat-value">${type}</span> &nbsp;|&nbsp; 
+                    <strong>Difficulty:</strong> <span class="dh-stat-value">${diff}</span>
+                </div>
+            `;
 
-            if (showStats) {
-                const tier = doc.system.tier ?? "";
-                const level = doc.system.level ?? "";
-                
-                let statsText = "";
-                if (doc.type === "character") {
-                    statsText = `<strong>Level:</strong> ${level} | <strong>Class:</strong> ${doc.system.class || "-"}`;
-                } else {
-                    statsText = `<strong>Tier:</strong> ${tier} | <strong>Type:</strong> ${doc.type}`;
-                }
-
+            // Adversaries have HP/Stress
+            if (doc.type === "adversary") {
+                const hp = sys.resources?.hitPoints?.max ?? "-";
+                const stress = sys.resources?.stress?.max ?? "-";
                 bodyHtml += `
                     <div class="dh-adversary-stats">
-                        ${statsText}
+                        <strong>HP:</strong> <span class="dh-stat-value">${hp}</span> &nbsp;|&nbsp;
+                        <strong>Stress:</strong> <span class="dh-stat-value">${stress}</span>
+                    </div>
+                `;
+            }
+
+            // Description
+            const bio = sys.biography?.value || sys.description || "";
+            if (bio) {
+                bodyHtml += `<div class="item-description">${bio}</div>`;
+            }
+
+            // Motives & Tactics / Impulses
+            if (sys.motivesAndTactics) {
+                bodyHtml += `
+                    <h3 style="color: #C9A060; margin-top: 20px;">Motives & Tactics</h3>
+                    <div class="dh-motives">${sys.motivesAndTactics}</div>
+                `;
+            }
+            if (sys.impulses) {
+                bodyHtml += `
+                    <h3 style="color: #C9A060; margin-top: 20px;">Impulses</h3>
+                    <div class="dh-motives">${sys.impulses}</div>
+                `;
+            }
+
+            // Features (Iterate embedded items)
+            if (doc.items && doc.items.size > 0) {
+                const features = doc.items.filter(i => i.type === "feature");
+                if (features.length > 0) {
+                    bodyHtml += `<h3 style="color: #C9A060; margin-top: 20px;">Features</h3>`;
+                    
+                    for (const feat of features) {
+                        const rawForm = feat.system.featureForm || "passive";
+                        const form = rawForm.charAt(0).toUpperCase() + rawForm.slice(1);
+                        // Clean description to avoid heavy nesting or unwanted tags
+                        let cleanDesc = (feat.system.description?.value || feat.system.description || "").replace(/<\/?p[^>]*>/g, " ");
+                        
+                        bodyHtml += `
+                            <div class="dh-feature-row">
+                                <span class="dh-feature-text">
+                                    <strong>[${form}] ${feat.name}:</strong> 
+                                    ${cleanDesc}
+                                </span>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+        } 
+        // --- GENERIC ITEMS / OTHER ACTORS ---
+        else {
+            // Description logic
+            let desc = "";
+            if (doc.documentName === "Item") {
+                desc = doc.system.description?.value || doc.system.description || "";
+            } else if (doc.documentName === "Actor") {
+                desc = doc.system.biography?.value || doc.system.details?.biography || "";
+            }
+
+            // Simple Stats for Characters
+            if (doc.type === "character") {
+                const level = doc.system.level ?? "";
+                const className = doc.system.class || "-";
+                bodyHtml += `
+                    <div class="dh-adversary-stats">
+                        <strong>Level:</strong> ${level} | <strong>Class:</strong> ${className}
                     </div>`;
             }
 
-            bodyHtml += `<div class="item-description">${bio}</div>`;
+            if (desc) {
+                bodyHtml += `<div class="dh-custom-body">${desc}</div>`;
+            } else if (!hasImg) {
+                bodyHtml += `<div class="dh-custom-body">No description provided.</div>`;
+            }
         }
 
-        // --- 4. IMAGE (Last element) ---
+        // --- 3. IMAGE (Last element) ---
         let imageHtml = "";
         if (hasImg) {
             imageHtml = `
@@ -321,7 +372,7 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
         }
 
         // --- CONSTRUCT CONTENT ---
-        content = headerHtml + linkHtml + bodyHtml + imageHtml;
+        content = headerHtml + bodyHtml + imageHtml;
 
         // --- FLAG DETERMINATION ---
         let category = "Custom";
@@ -335,8 +386,6 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
                 category = doc.type.charAt(0).toUpperCase() + doc.type.slice(1);
             }
         } 
-        // Fallback to "Custom Image" only if there is no type AND no text description but there is an image
-        // (Note: Since Item/Actor always have a type, this fallback is rare, but good for safety)
         else if (hasImg && !bodyHtml) {
             category = "Custom Image";
         }
