@@ -1,5 +1,5 @@
-<div class="dh-add-mystuff-container">
-    <div class="dh-mystuff-header">
+<div class="dh-add-mycontent-container">
+    <div class="dh-mycontent-header">
         <p>Select folders to import content into <strong>📜 My Custom Content</strong>.</p>
     </div>
 
@@ -16,10 +16,8 @@
     {{!-- Folder List --}}
     <div class="dh-folder-list">
         {{#each folders}}
-        {{!-- Use pre-calculated paddingLeft based on hierarchy depth --}}
         <div class="dh-folder-row" style="padding-left: {{this.paddingLeft}}px;">
             <label class="dh-checkbox-label">
-                {{!-- Visual guide for hierarchy (optional angle icon for children) --}}
                 {{#if (gt this.paddingLeft 0)}}<i class="fas fa-level-up-alt fa-rotate-90" style="margin-right: 5px; color: #555; font-size: 0.8em;"></i>{{/if}}
                 
                 <input type="checkbox" value="{{this.id}}" data-action="toggleFolder" {{checked this.checked}}>

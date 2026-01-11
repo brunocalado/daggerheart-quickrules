@@ -36,6 +36,9 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 
 * **Smart Permissions:** Only shows content users have permission to see.
 
+You can learn more at [How to Add Your Content
+](https://github.com/brunocalado/daggerheart-quickrules/wiki/How-to-Add-Your-Content)
+
 ## ⚙️ Usage
 
 ### Opening the Rules

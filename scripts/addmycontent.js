@@ -1,6 +1,6 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(ApplicationV2) {
+export class DaggerheartAddMyContent extends HandlebarsApplicationMixin(ApplicationV2) {
     
     constructor(options = {}) {
         super(options);
@@ -10,11 +10,11 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
 
     /** @override */
     static DEFAULT_OPTIONS = {
-        id: "daggerheart-add-mystuff",
+        id: "daggerheart-add-mycontent",
         tag: "form",
-        classes: ["daggerheart-quickrules-window", "dh-add-mystuff"],
+        classes: ["daggerheart-quickrules-window", "dh-add-mycontent-window"], // Classe específica para CSS
         window: {
-            title: "Add My Stuff",
+            title: "Add My Content",
             icon: "fas fa-folder-plus",
             resizable: true,
             width: 500,
@@ -25,16 +25,16 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
             height: 600
         },
         actions: {
-            switchTab: DaggerheartAddMyStuff._onSwitchTab,
-            toggleFolder: DaggerheartAddMyStuff._onToggleFolder,
-            buildCustom: DaggerheartAddMyStuff._onBuildCustom
+            switchTab: DaggerheartAddMyContent._onSwitchTab,
+            toggleFolder: DaggerheartAddMyContent._onToggleFolder,
+            buildCustom: DaggerheartAddMyContent._onBuildCustom
         }
     };
 
     /** @override */
     static PARTS = {
         main: {
-            template: "modules/daggerheart-quickrules/templates/add-my-stuff.hbs"
+            template: "modules/daggerheart-quickrules/templates/add-my-content.hbs"
         }
     };
 
@@ -172,7 +172,7 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
             folder = await Folder.create({
                 name: targetFolderName, 
                 type: "JournalEntry", 
-                color: "#5c0547", // Updated color
+                color: "#5c0547", // Custom Color
                 sorting: "a"
             });
         }
@@ -247,8 +247,6 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
         const permissions = doc.ownership || { default: 0 };
 
         // --- 1. HEADER (Title + Open Button) ---
-        // Flex container adds the border bottom (replacing the old separator)
-        // H1 has border removed to avoid duplication
         const headerHtml = `
             <div class="dh-custom-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dcb15d; margin-bottom: 20px; padding-bottom: 5px;">
                 <h1 style="border-bottom: none; margin: 0; padding: 0; flex: 1; line-height: 1;">${doc.name}</h1>
@@ -268,7 +266,7 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
             const type = sys.type ? String(sys.type).charAt(0).toUpperCase() + String(sys.type).slice(1) : "-";
             const diff = sys.difficulty ?? "-";
             
-            // Build Stats Block identical to SRD
+            // Build Stats Block
             bodyHtml += `
                 <div class="dh-adversary-stats" style="border-bottom: 0; padding-bottom: 0; margin-bottom: 5px;">
                     <strong>Tier:</strong> <span class="dh-stat-value">${tier}</span> &nbsp;|&nbsp; 
@@ -318,7 +316,6 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
                     for (const feat of features) {
                         const rawForm = feat.system.featureForm || "passive";
                         const form = rawForm.charAt(0).toUpperCase() + rawForm.slice(1);
-                        // Clean description to avoid heavy nesting or unwanted tags
                         let cleanDesc = (feat.system.description?.value || feat.system.description || "").replace(/<\/?p[^>]*>/g, " ");
                         
                         bodyHtml += `
@@ -382,7 +379,7 @@ export class DaggerheartAddMyStuff extends HandlebarsApplicationMixin(Applicatio
             if (doc.type === "domainCard") {
                 category = "Domain Card";
             } else {
-                // Capitalize first letter for all other types (Armor, Weapon, Class, Adversary, etc.)
+                // Capitalize first letter for all other types
                 category = doc.type.charAt(0).toUpperCase() + doc.type.slice(1);
             }
         } 
