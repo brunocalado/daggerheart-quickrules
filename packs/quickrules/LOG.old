@@ -1,8 +1,40 @@
-2026/01/13-09:33:41.217 51b8 Recovering log #834
-2026/01/13-09:33:41.221 51b8 Delete type=0 #834
-2026/01/13-09:33:41.221 51b8 Delete type=3 #832
-2026/01/13-09:35:48.600 4a14 Level-0 table #839: started
-2026/01/13-09:35:48.600 4a14 Level-0 table #839: 0 bytes OK
-2026/01/13-09:35:48.602 4a14 Delete type=0 #837
-2026/01/13-09:35:48.604 4a14 Manual compaction at level-0 from '!journal!0HoIamgOonkR18O4' @ 72057594037927935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zvjTWVdyQKysanvU' @ 0 : 0; will stop at (end)
-2026/01/13-09:35:48.604 4a14 Manual compaction at level-1 from '!journal!0HoIamgOonkR18O4' @ 72057594037927935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zvjTWVdyQKysanvU' @ 0 : 0; will stop at (end)
+2026/01/13-10:27:06.070 51b0 Recovering log #842
+2026/01/13-10:27:06.073 51b0 Delete type=0 #842
+2026/01/13-10:27:06.073 51b0 Delete type=3 #840
+2026/01/13-10:30:33.387 4a14 Level-0 table #847: started
+2026/01/13-10:30:33.413 4a14 Level-0 table #847: 2084179 bytes OK
+2026/01/13-10:30:33.414 4a14 Delete type=0 #845
+2026/01/13-10:38:20.147 4a14 Level-0 table #849: started
+2026/01/13-10:38:20.172 4a14 Level-0 table #849: 2077369 bytes OK
+2026/01/13-10:38:20.174 4a14 Delete type=0 #846
+2026/01/13-10:39:34.995 4a14 Level-0 table #851: started
+2026/01/13-10:39:35.020 4a14 Level-0 table #851: 2029237 bytes OK
+2026/01/13-10:39:35.021 4a14 Delete type=0 #848
+2026/01/13-10:44:58.344 4a14 Level-0 table #853: started
+2026/01/13-10:44:58.371 4a14 Level-0 table #853: 2040098 bytes OK
+2026/01/13-10:44:58.372 4a14 Delete type=0 #850
+2026/01/13-10:53:54.091 4a14 Level-0 table #855: started
+2026/01/13-10:53:54.109 4a14 Level-0 table #855: 1390794 bytes OK
+2026/01/13-10:53:54.110 4a14 Delete type=0 #852
+2026/01/13-10:53:54.110 4a14 Manual compaction at level-0 from '!journal!0HoIamgOonkR18O4' @ 72057594037927935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zwv1eVfcFByq6KyI' @ 0 : 0; will stop at '!journal.pages!0HoIamgOonkR18O4.zzGc46oqYs5sHbDT' @ 190578 : 1
+2026/01/13-10:53:54.110 4a14 Compacting 4@0 + 1@1 files
+2026/01/13-10:53:54.156 4a14 Generated table #856@0: 6818 keys, 2128373 bytes
+2026/01/13-10:53:54.157 4a14 Generated table #857@0: 65 keys, 24964 bytes
+2026/01/13-10:53:54.157 4a14 Compacted 4@0 + 1@1 files => 2153337 bytes
+2026/01/13-10:53:54.158 4a14 compacted to: files[ 0 2 1 0 0 0 0 ]
+2026/01/13-10:53:54.158 4a14 Delete type=2 #847
+2026/01/13-10:53:54.159 4a14 Delete type=2 #849
+2026/01/13-10:53:54.159 4a14 Delete type=2 #851
+2026/01/13-10:53:54.160 4a14 Delete type=2 #853
+2026/01/13-10:53:54.160 4a14 Delete type=2 #855
+2026/01/13-10:53:54.163 4a14 Manual compaction at level-0 from '!journal.pages!0HoIamgOonkR18O4.zzGc46oqYs5sHbDT' @ 190578 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zwv1eVfcFByq6KyI' @ 0 : 0; will stop at (end)
+2026/01/13-10:53:54.165 4a14 Expanding@1 1+1 (2128373+2009468 bytes) to 2+1 (2153337+2009468 bytes)
+2026/01/13-10:53:54.165 4a14 Manual compaction at level-1 from '!journal!0HoIamgOonkR18O4' @ 72057594037927935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zwv1eVfcFByq6KyI' @ 0 : 0; will stop at '!journal.pages!0HoIamgOonkR18O4.zwv1eVfcFByq6KyI' @ 196935 : 1
+2026/01/13-10:53:54.165 4a14 Compacting 2@1 + 1@2 files
+2026/01/13-10:53:54.204 4a14 Generated table #858@1: 1379 keys, 2018357 bytes
+2026/01/13-10:53:54.204 4a14 Compacted 2@1 + 1@2 files => 2018357 bytes
+2026/01/13-10:53:54.204 4a14 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/01/13-10:53:54.205 4a14 Delete type=2 #785
+2026/01/13-10:53:54.205 4a14 Delete type=2 #856
+2026/01/13-10:53:54.206 4a14 Delete type=2 #857
+2026/01/13-10:53:54.206 4a14 Manual compaction at level-1 from '!journal.pages!0HoIamgOonkR18O4.zwv1eVfcFByq6KyI' @ 196935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zwv1eVfcFByq6KyI' @ 0 : 0; will stop at (end)
