@@ -5,7 +5,6 @@ const MODULE_ID = "daggerheart-quickrules";
 Hooks.once("init", () => {
     console.log("Daggerheart Quick Rules | Initializing...");
 
-    // ... (seu código existente de settings) ...
     game.settings.register(MODULE_ID, "showFloatingButton", {
         name: "Show Floating Button",
         hint: "Display the floating question mark button on the canvas to open the Quick Rules.",
@@ -104,39 +103,65 @@ function toggleFloatingButton(show) {
         btn.style.left = '20px';
         btn.style.top = '100px';
 
-        btn.addEventListener('click', () => {
-            new DaggerheartQuickRules().render(true);
-        });
-        
-        // ... (Drag logic from your snippet) ...
+        // --- Drag & Click Logic Variables ---
         let isDragging = false;
+        let hasDragged = false; // [UPDATED] Flag to track actual movement
         let startX, startY, initialLeft, initialTop;
         const dragThreshold = 3; 
 
+        // [UPDATED] Click Listener: Checks hasDragged before opening
+        btn.addEventListener('click', (e) => {
+            if (hasDragged) {
+                // If it was a drag, consume the click and reset the flag
+                e.preventDefault();
+                e.stopPropagation();
+                hasDragged = false; 
+                return;
+            }
+            new DaggerheartQuickRules().render(true);
+        });
+
+        // Mouse Down
         btn.addEventListener('mousedown', (e) => {
+            // Only allow dragging with left mouse button (button 0)
+            if (e.button !== 0) return;
+
             isDragging = true;
+            hasDragged = false; // [UPDATED] Reset flag on new interaction
+            
             startX = e.clientX;
             startY = e.clientY;
+            
             const rect = btn.getBoundingClientRect();
             initialLeft = rect.left;
             initialTop = rect.top;
+            
             btn.style.cursor = 'grabbing';
         });
 
+        // Mouse Move (Window)
         window.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
+            
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
+            
+            // Check threshold
             if (Math.sqrt(dx*dx + dy*dy) > dragThreshold) {
+                hasDragged = true; // [UPDATED] Movement exceeded threshold, mark as drag
                 e.preventDefault(); 
                 btn.style.left = `${initialLeft + dx}px`;
                 btn.style.top = `${initialTop + dy}px`;
             }
         });
 
+        // Mouse Up (Window)
         window.addEventListener('mouseup', () => {
-            isDragging = false;
-            btn.style.cursor = 'grab';
+            if (isDragging) {
+                isDragging = false;
+                btn.style.cursor = 'grab';
+                // Note: We don't reset hasDragged here; we need it for the subsequent 'click' event
+            }
         });
     }
 }

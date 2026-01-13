@@ -1,3 +1,8 @@
-2026/01/12-11:41:02.732 54a8 Recovering log #822
-2026/01/12-11:41:02.736 54a8 Delete type=0 #822
-2026/01/12-11:41:02.736 54a8 Delete type=3 #820
+2026/01/13-09:33:41.217 51b8 Recovering log #834
+2026/01/13-09:33:41.221 51b8 Delete type=0 #834
+2026/01/13-09:33:41.221 51b8 Delete type=3 #832
+2026/01/13-09:35:48.600 4a14 Level-0 table #839: started
+2026/01/13-09:35:48.600 4a14 Level-0 table #839: 0 bytes OK
+2026/01/13-09:35:48.602 4a14 Delete type=0 #837
+2026/01/13-09:35:48.604 4a14 Manual compaction at level-0 from '!journal!0HoIamgOonkR18O4' @ 72057594037927935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zvjTWVdyQKysanvU' @ 0 : 0; will stop at (end)
+2026/01/13-09:35:48.604 4a14 Manual compaction at level-1 from '!journal!0HoIamgOonkR18O4' @ 72057594037927935 : 1 .. '!journal.pages!0HoIamgOonkR18O4.zvjTWVdyQKysanvU' @ 0 : 0; will stop at (end)
