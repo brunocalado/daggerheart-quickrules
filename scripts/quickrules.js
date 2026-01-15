@@ -89,9 +89,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         new DaggerheartAddMyContent().render(true);
     }
 
-    // ... Restante dos métodos da classe (buildSRD, renderPageContent, etc.) mantidos iguais ...
-    // Certifique-se de manter o método buildSRD e renderPageContent completos aqui.
-    // Omitido para economizar espaço, mas o código é o mesmo da versão anterior.
     async navigateToPage(pageId) {
         if (this.selectedPageId === pageId) return;
         this.selectedPageId = pageId;
@@ -203,10 +200,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         }
     }
 
-    // ... (Keep other methods: _highlightText, forceNavigateToPage, _getActiveJournal, _buildPageCache, _prepareContext, _onRender, _filterList and actions) ...
-    // Note: I am NOT deleting the rest of the file logic, just abbreviating here for clarity. Ensure the FULL file content from previous step is used, just changing imports/static method name.
-    
-    // START OF REST OF FILE (Full Content for Copy/Paste safety)
     _highlightText(htmlContent, term) {
         if (!term || !term.trim()) return htmlContent;
         const cleanTerm = term.trim();
@@ -247,7 +240,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         if (!this._cachedPages) await this._buildPageCache();
         this.selectedPageId = pageId;
         await this.renderPageContent(pageId);
-        this.bringToTop(); 
+        // FIX: Replaced bringToTop with bringToFront for AppV2 compatibility
+        this.bringToFront(); 
     }
 
     async _getActiveJournal() {
@@ -610,20 +604,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     }
 
     static async buildSRD(mode = 'All') {
-        // ... (Mesma lógica de buildSRD, vou omitir para não duplicar, mas deve estar presente)
-        // ... (Copie o buildSRD do seu último código funcional ou do quickrules.js anterior)
-        // ...
-        // Vou incluir apenas a assinatura para confirmar que o método existe
         const sourceCompendiumName = "daggerheart.journals";
-        // ... (O código completo do buildSRD deve ir aqui)
-        // ... (Como não houve mudança no buildSRD nesta iteração além do nome AddMyStuff -> AddMyContent, mantenha o código do buildSRD)
-        
-        // **IMPORTANTE**: Como o usuário pediu para substituir AddMyStuff, e essa lógica estava separada,
-        // o buildSRD principal (que processa compendiums) não muda. 
-        // Apenas certifique-se de que o arquivo quickrules.js contenha a função completa.
-        
-        // (Vou colar o buildSRD completo aqui para garantir que você tenha o arquivo completo e funcional)
-        
         const sourceJournalId = "uNs7ne9VCbbu5dcG";
         const targetPackName = "daggerheart-quickrules.quickrules";
         const targetJournalName = (mode === 'All') ? "Daggerheart SRD - All" : "Daggerheart SRD - Rules";

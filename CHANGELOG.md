@@ -1,3 +1,7 @@
+# 0.1.1
+- fixed: You can show players now
+- improved style
+
 # 0.1.0
 - You can drag the floating button without open it
 
