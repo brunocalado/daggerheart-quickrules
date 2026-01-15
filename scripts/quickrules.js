@@ -1146,7 +1146,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             <div class="dh-custom-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dcb15d; margin-bottom: 20px; padding-bottom: 5px;">
                                 <h1 style="border-bottom: none; margin: 0; padding: 0; flex: 1; line-height: 1;">${item.name}</h1>
                                 <span style="flex: 0 0 auto; margin-left: 10px; font-size: 0.85em; font-family: 'Signika', sans-serif;">
-                                    @UUID[${item.uuid}]{Open ${item.name}}
+                                    @UUID[${item.uuid}]{Open}
                                 </span>
                             </div>
                         `;
@@ -1202,7 +1202,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                             <div class="dh-custom-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dcb15d; margin-bottom: 20px; padding-bottom: 5px;">
                                 <h1 style="border-bottom: none; margin: 0; padding: 0; flex: 1; line-height: 1;">${cleanName}</h1>
                                 <span style="flex: 0 0 auto; margin-left: 10px; font-size: 0.85em; font-family: 'Signika', sans-serif;">
-                                    @UUID[${table.uuid}]{Open Original RollTable}
+                                    @UUID[${table.uuid}]{Open}
                                 </span>
                             </div>
                         `;
