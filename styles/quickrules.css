@@ -780,6 +780,11 @@
     z-index: 9999;
     box-shadow: 0 0 10px rgba(0,0,0,0.8);
     transition: transform 0.2s, box-shadow 0.2s;
+    /* REMOVED: Default Animation */
+}
+
+/* ADDED: Only animate if has .pulse class */
+#dh-quickrules-trigger.pulse {
     animation: dh-pulse-glow 3s infinite;
 }
 

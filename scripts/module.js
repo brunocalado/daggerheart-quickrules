@@ -25,18 +25,31 @@ Hooks.once("init", () => {
         config: true,
         type: String,
         choices: {            
-            "small": "Smaller",
+            "small": "Small",   // Changed from Smaller
             "normal": "Normal",
-            "large": "Larger"
+            "large": "Large"    // Changed from Larger
         },
         default: "normal",
         onChange: () => {
+            // Re-run toggle to update classes
             if (game.settings.get(MODULE_ID, "showFloatingButton")) {
-                const btn = document.getElementById("dh-quickrules-trigger");
-                if (btn) {
-                    const size = game.settings.get(MODULE_ID, "floatingButtonSize");
-                    btn.className = `size-${size}`;
-                }
+                toggleFloatingButton(true);
+            }
+        }
+    });
+
+    // --- NOVA SETTING: Efeito de Pulsar ---
+    game.settings.register(MODULE_ID, "pulseFloatingButton", {
+        name: "Pulse Floating Button",
+        hint: "If enabled, the floating button will have a pulsing glow effect.",
+        scope: "client",
+        config: true,
+        type: Boolean,
+        default: false, // Default: OFF
+        onChange: () => {
+             // Re-run toggle to update classes
+            if (game.settings.get(MODULE_ID, "showFloatingButton")) {
+                toggleFloatingButton(true);
             }
         }
     });
@@ -128,7 +141,14 @@ function toggleFloatingButton(show) {
         btn.title = "Open Daggerheart Quick Rules";
         
         const size = game.settings.get(MODULE_ID, "floatingButtonSize");
+        const pulse = game.settings.get(MODULE_ID, "pulseFloatingButton");
+        
         btn.classList.add(`size-${size}`);
+        
+        // Add class .pulse if setting is active
+        if (pulse) {
+            btn.classList.add("pulse");
+        }
 
         document.body.appendChild(btn);
 

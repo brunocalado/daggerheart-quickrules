@@ -1,3 +1,6 @@
+# 0.1.2
+- You can disable the pulsing effect
+
 # 0.1.1
 - fixed: You can show players now
 - improved style
