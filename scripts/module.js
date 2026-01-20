@@ -5,7 +5,7 @@ const MODULE_ID = "daggerheart-quickrules";
 Hooks.once("init", () => {
     console.log("Daggerheart Quick Rules | Initializing...");
 
-    // --- Configuração Visual do Botão Flutuante ---
+    // --- Floating Button Configuration ---
     game.settings.register(MODULE_ID, "showFloatingButton", {
         name: "Show Floating Button",
         hint: "Display the floating question mark button on the canvas to open the Quick Rules.",
@@ -25,9 +25,9 @@ Hooks.once("init", () => {
         config: true,
         type: String,
         choices: {            
-            "small": "Small",   // Changed from Smaller
+            "small": "Small",   
             "normal": "Normal",
-            "large": "Large"    // Changed from Larger
+            "large": "Large"    
         },
         default: "normal",
         onChange: () => {
@@ -38,7 +38,7 @@ Hooks.once("init", () => {
         }
     });
 
-    // --- NOVA SETTING: Efeito de Pulsar ---
+    // --- Pulsing Effect Setting ---
     game.settings.register(MODULE_ID, "pulseFloatingButton", {
         name: "Pulse Floating Button",
         hint: "If enabled, the floating button will have a pulsing glow effect.",
@@ -54,37 +54,58 @@ Hooks.once("init", () => {
         }
     });
 
-    // --- CORREÇÃO DO ERRO ---
-    // Registro da Setting "forceOpenRequest" para sincronizar a abertura da janela
+    // --- Force Open Request Setting ---
+    // Registration of "forceOpenRequest" to synchronize window opening
     game.settings.register(MODULE_ID, "forceOpenRequest", {
         name: "Force Open Request",
-        scope: "world",     // Sincroniza entre todos os clientes (GM e Players)
-        config: false,      // Não aparece no menu de configurações
+        scope: "world",     // Syncs between all clients (GM and Players)
+        config: false,      // Does not appear in the settings menu
         default: {},
         type: Object,
         onChange: (value) => {
-            // Esta função roda em TODOS os clientes conectados quando o valor muda
+            // This function runs on ALL connected clients when the value changes
             if (!value || !value.pageId) return;
 
-            // Verifica se a solicitação é recente (evita abrir ao dar F5 se a setting ficou salva)
+            // Checks if the request is recent (avoids opening on F5 if the setting was saved)
             const timeDiff = Date.now() - (value.time || 0);
-            if (timeDiff > 10000) return; // Ignora se a solicitação tem mais de 10 segundos
+            if (timeDiff > 10000) return; // Ignores if the request is older than 10 seconds
 
-            // Encontra a janela se já estiver aberta
+            // Finds the window if it is already open
             const existingApp = Object.values(ui.windows).find(w => w.id === "daggerheart-quickrules");
 
             if (existingApp) {
-                // Se já estiver aberta, foca nela e navega para a página
+                // If already open, focus on it and navigate to the page
                 existingApp.render(true, { focus: true });
                 existingApp.forceNavigateToPage(value.pageId);
             } else {
-                // Se estiver fechada, cria uma nova instância, renderiza e navega
+                // If closed, creates a new instance, renders, and navigates
                 new DaggerheartQuickRules().render(true).then(app => {
-                    // Pequeno delay para garantir que o DOM renderizou antes de navegar/scrollar
+                    // Small delay to ensure the DOM rendered before navigating/scrolling
                     setTimeout(() => app.forceNavigateToPage(value.pageId), 100);
                 });
             }
         }
+    });
+
+    // --- KEYBINDING REGISTRATION (NEW) ---
+    game.keybindings.register(MODULE_ID, "openQuickRules", {
+        name: "Open Quick Rules",
+        hint: "Toggle the Quick Rules window.",
+        editable: [
+            { key: "KeyD", modifiers: [KeyboardManager.MODIFIER_KEYS.SHIFT] }
+        ],
+        onDown: () => {
+            // Check if we should toggle (close if open) or just open
+            const existingApp = Object.values(ui.windows).find(w => w.id === "daggerheart-quickrules");
+            if (existingApp) {
+                existingApp.close();
+            } else {
+                DaggerheartQuickRules.Open();
+            }
+            return true; // Consumes the event
+        },
+        restricted: false, // Available to all users (GM and Players)
+        precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
     });
 
     // Expose the class globally for console access and macros
@@ -100,6 +121,7 @@ Hooks.once("ready", () => {
 
 // Hook to add button to Daggerheart Menu (sidebar)
 Hooks.on("renderDaggerheartMenu", (app, element, data) => {
+    // V13 Safety check: element is HTMLElement
     const html = element instanceof jQuery ? element[0] : element;
 
     const myButton = document.createElement("button");
@@ -152,7 +174,7 @@ function toggleFloatingButton(show) {
 
         document.body.appendChild(btn);
 
-        // Position logic (simples)
+        // Position logic (simple)
         btn.style.left = '20px';
         btn.style.top = '100px';
 

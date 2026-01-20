@@ -1,3 +1,6 @@
+# 0.1.3
+- shift + d works again
+
 # 0.1.2
 - You can disable the pulsing effect
 
