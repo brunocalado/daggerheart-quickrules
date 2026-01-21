@@ -75,11 +75,13 @@ Hooks.once("init", () => {
 
             if (existingApp) {
                 // If already open, focus on it and navigate to the page
-                existingApp.render(true, { focus: true });
+                // V13 AppV2: render takes an options object, not a boolean
+                existingApp.render({ focus: true });
                 existingApp.forceNavigateToPage(value.pageId);
             } else {
                 // If closed, creates a new instance, renders, and navigates
-                new DaggerheartQuickRules().render(true).then(app => {
+                // V13 AppV2: render takes an options object
+                new DaggerheartQuickRules().render({ force: true }).then(app => {
                     // Small delay to ensure the DOM rendered before navigating/scrolling
                     setTimeout(() => app.forceNavigateToPage(value.pageId), 100);
                 });
@@ -92,7 +94,8 @@ Hooks.once("init", () => {
         name: "Open Quick Rules",
         hint: "Toggle the Quick Rules window.",
         editable: [
-            { key: "KeyD", modifiers: [KeyboardManager.MODIFIER_KEYS.SHIFT] }
+            // FIXED: Updated for Foundry V13. KeyboardManager is now under foundry.helpers.interaction
+            { key: "KeyD", modifiers: [foundry.helpers.interaction.KeyboardManager.MODIFIER_KEYS.SHIFT] }
         ],
         onDown: () => {
             // Check if we should toggle (close if open) or just open
@@ -191,7 +194,8 @@ function toggleFloatingButton(show) {
                 hasDragged = false; 
                 return;
             }
-            new DaggerheartQuickRules().render(true);
+            // V13 AppV2: render({ force: true })
+            new DaggerheartQuickRules().render({ force: true });
         });
 
         btn.addEventListener('mousedown', (e) => {

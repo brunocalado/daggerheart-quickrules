@@ -1,3 +1,6 @@
+# 0.1.4
+- shift + d warning removed
+
 # 0.1.3
 - shift + d works again
 
