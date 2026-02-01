@@ -54,6 +54,15 @@ Hooks.once("init", () => {
         }
     });
 
+    // --- NOVO: Button Position Setting (Hidden) ---
+    // Armazena as coordenadas X/Y localmente por usuário
+    game.settings.register(MODULE_ID, "floatingButtonPosition", {
+        scope: "client",
+        config: false, // Não aparece no menu de configurações
+        type: Object,
+        default: { left: 20, top: 100 }
+    });
+
     // --- Force Open Request Setting ---
     // Registration of "forceOpenRequest" to synchronize window opening
     game.settings.register(MODULE_ID, "forceOpenRequest", {
@@ -168,6 +177,9 @@ function toggleFloatingButton(show) {
         const size = game.settings.get(MODULE_ID, "floatingButtonSize");
         const pulse = game.settings.get(MODULE_ID, "pulseFloatingButton");
         
+        // --- ATUALIZADO: Recuperar Posição Salva ---
+        const savedPos = game.settings.get(MODULE_ID, "floatingButtonPosition");
+        
         btn.classList.add(`size-${size}`);
         
         // Add class .pulse if setting is active
@@ -177,9 +189,9 @@ function toggleFloatingButton(show) {
 
         document.body.appendChild(btn);
 
-        // Position logic (simple)
-        btn.style.left = '20px';
-        btn.style.top = '100px';
+        // Position logic (usa a posição salva ou o padrão)
+        btn.style.left = `${savedPos.left}px`;
+        btn.style.top = `${savedPos.top}px`;
 
         // --- Drag & Click Logic ---
         let isDragging = false;
@@ -228,10 +240,22 @@ function toggleFloatingButton(show) {
             }
         });
 
-        window.addEventListener('mouseup', () => {
+        window.addEventListener('mouseup', async () => {
             if (isDragging) {
                 isDragging = false;
                 btn.style.cursor = 'grab';
+
+                // --- NOVO: Salvar Posição ao Soltar ---
+                if (hasDragged) {
+                    const newPos = {
+                        left: parseInt(btn.style.left) || 0,
+                        top: parseInt(btn.style.top) || 0
+                    };
+                    await game.settings.set(MODULE_ID, "floatingButtonPosition", newPos);
+                    // Reset flag apenas após salvar/processar
+                    // hasDragged será resetado no mousedown ou click subsequente, 
+                    // mas podemos garantir aqui que a lógica de drag terminou.
+                }
             }
         });
     }
