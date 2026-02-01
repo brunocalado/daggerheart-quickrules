@@ -1,3 +1,6 @@
+# 0.1.5
+- It will remember the last floating button position.
+
 # 0.1.4
 - shift + d warning removed
 
