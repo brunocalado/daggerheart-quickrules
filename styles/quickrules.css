@@ -954,3 +954,32 @@
     color: #666;
     font-style: italic;
 }
+
+/* =========================================================================
+   JOURNAL DIRECTORY SIDEBAR BUTTON
+   ========================================================================= */
+#dh-journal-quickrules-btn {
+    width: 100%;
+    background: linear-gradient(to bottom, #5e4b2a, #3d3018);
+    border: 1px solid #dcb15d;
+    color: #dcb15d;
+    font-family: "Signika", sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 5px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+}
+
+#dh-journal-quickrules-btn:hover {
+    background: linear-gradient(to bottom, #7a6238, #5e4b2a);
+    color: #fff;
+    border-color: #fff;
+    box-shadow: 0 0 6px rgba(220, 177, 93, 0.5);
+}

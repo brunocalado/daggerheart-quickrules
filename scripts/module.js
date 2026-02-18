@@ -131,6 +131,26 @@ Hooks.once("ready", () => {
     }
 });
 
+// Hook to add button to Journal Notes sidebar (right side)
+Hooks.on("renderJournalDirectory", (_app, element, _data) => {
+    const html = element instanceof jQuery ? element[0] : element;
+    if (html.querySelector('#dh-journal-quickrules-btn')) return;
+
+    const btn = document.createElement("button");
+    btn.id = "dh-journal-quickrules-btn";
+    btn.type = "button";
+    btn.innerHTML = `<i class="fas fa-book-open"></i> Quick Rules`;
+    btn.title = "Open Daggerheart Quick Rules";
+    btn.addEventListener('click', () => {
+        if (window.QuickRules) window.QuickRules.Open();
+    });
+
+    const footer = html.querySelector('.directory-footer') || html.querySelector('footer');
+    if (footer) {
+        footer.prepend(btn);
+    }
+});
+
 // Hook to add button to Daggerheart Menu (sidebar)
 Hooks.on("renderDaggerheartMenu", (app, element, data) => {
     // V13 Safety check: element is HTMLElement
@@ -163,6 +183,7 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
         html.appendChild(myButton);
     }
 });
+
 
 function toggleFloatingButton(show) {
     const existingBtn = document.getElementById("dh-quickrules-trigger");
