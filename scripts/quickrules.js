@@ -13,8 +13,12 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         this.searchQuery = "";
         this.scrollPos = 0;
         this.viewMode = 'all';
-        this.deepSearch = false; 
-        this._cachedPages = null; 
+        this.deepSearch = false;
+        this._cachedPages = null;
+        this._pageMap = null;
+        this._pageMetadata = null;
+        this._journalEntry = null;
+        this._enrichCache = new Map();
     }
 
     /** @override */
@@ -97,7 +101,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
     async renderPageContent(pageId) {
         if (!this._cachedPages) await this._buildPageCache();
-        const page = this._cachedPages.find(p => p.id === pageId);
+        const page = this._pageMap?.get(pageId) || this._cachedPages.find(p => p.id === pageId);
         if (!page) return;
 
         const allButtons = this.element.querySelectorAll('.dh-page-btn');
@@ -106,39 +110,50 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         if (activeButton) activeButton.classList.add('active');
 
         const isGM = game.user.isGM;
-        const fontSize = game.user.getFlag("daggerheart-quickrules", "fontSize") || 14;
-        const theme = game.user.getFlag("daggerheart-quickrules", "theme") || "light";
-        
+        const userFlags = game.user.flags?.["daggerheart-quickrules"] || {};
+        const fontSize = userFlags.fontSize || 14;
+        const theme = userFlags.theme || "light";
+
         const isImage = (page.type === "image");
         let contentBody = "";
 
         if (isImage) {
-            const src = page.src; 
+            const src = page.src;
             contentBody = `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000;">
                 <img src="${src}" style="max-width: 100%; max-height: 100%; object-fit: contain; border: none; box-shadow: none;">
             </div>`;
         } else {
-            let enrichedContent = await foundry.applications.ux.TextEditor.enrichHTML(page.text.content, {
-                secrets: isGM, 
-                async: true,
-                relativeTo: page
-            });
+            // Use enrichment cache
+            let enrichedContent = this._enrichCache.get(pageId);
+            if (!enrichedContent) {
+                enrichedContent = await foundry.applications.ux.TextEditor.enrichHTML(page.text.content, {
+                    secrets: isGM,
+                    async: true,
+                    relativeTo: page
+                });
+                this._enrichCache.set(pageId, enrichedContent);
+            }
             if (this.deepSearch && this.searchQuery) {
                 enrichedContent = this._highlightText(enrichedContent, this.searchQuery);
             }
             contentBody = enrichedContent;
         }
 
+        // Use pre-computed metadata for navigation
         let prevRuleId = null;
         let nextRuleId = null;
         let hasRuleOrder = false;
-        const currentOrder = page.getFlag("daggerheart-quickrules", "order");
+        const meta = this._pageMetadata?.get(pageId);
+        const currentOrder = meta?.order ?? page.getFlag("daggerheart-quickrules", "order");
         if (Number.isInteger(currentOrder)) {
             hasRuleOrder = true;
-            const pPrev = this._cachedPages.find(p => p.getFlag("daggerheart-quickrules", "order") === currentOrder - 1);
-            if (pPrev) prevRuleId = pPrev.id;
-            const pNext = this._cachedPages.find(p => p.getFlag("daggerheart-quickrules", "order") === currentOrder + 1);
-            if (pNext) nextRuleId = pNext.id;
+            if (this._pageMetadata) {
+                for (const [id, m] of this._pageMetadata) {
+                    if (m.order === currentOrder - 1) prevRuleId = id;
+                    if (m.order === currentOrder + 1) nextRuleId = id;
+                    if (prevRuleId && nextRuleId) break;
+                }
+            }
         }
         
         const prevButtonState = prevRuleId ? '' : 'disabled style="opacity: 0.5; cursor: default;"';
@@ -245,99 +260,143 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     }
 
     async _getActiveJournal() {
-        const packName = "daggerheart-quickrules.quickrules"; 
+        if (this._journalEntry) return this._journalEntry;
+        const packName = "daggerheart-quickrules.quickrules";
         const pack = game.packs.get(packName);
         if (!pack) return null;
         let journals = await pack.getDocuments({name: "Daggerheart SRD - All"});
-        if (journals && journals.length > 0) return journals[0];
+        if (journals && journals.length > 0) {
+            this._journalEntry = journals[0];
+            return this._journalEntry;
+        }
         journals = await pack.getDocuments({name: "Daggerheart SRD - Rules"});
-        if (journals && journals.length > 0) return journals[0];
+        if (journals && journals.length > 0) {
+            this._journalEntry = journals[0];
+            return this._journalEntry;
+        }
         return null;
     }
 
     async _buildPageCache() {
         const defaultFilters = { rules: true, compendiums: true, custom: true };
         const filters = game.user.getFlag("daggerheart-quickrules", "filters") ?? defaultFilters;
+        const isGM = game.user.isGM;
+        const hiddenPacks = isGM ? [] : ["daggerheart.adversaries", "daggerheart.environments"];
+        const compendiumPacks = [
+            "daggerheart.classes", "daggerheart.subclasses", "daggerheart.domains", "daggerheart.ancestries",
+            "daggerheart.communities", "daggerheart.beastforms", "daggerheart.weapons", "daggerheart.armors",
+            "daggerheart.consumables", "daggerheart.loot", "daggerheart.adversaries", "daggerheart.environments"
+        ];
         let pages = [];
+        this._pageMap = new Map();
+        this._pageMetadata = new Map();
+
         const journalEntry = await this._getActiveJournal();
         if (journalEntry) {
-            const rawPages = Array.from(journalEntry.pages);
-            pages = rawPages.filter(p => {
-                const isRule = p.getFlag("daggerheart-quickrules", "type") === "rule";
-                const sourcePack = p.getFlag("daggerheart-quickrules", "sourcePack");
-                if (isRule) return filters.rules;
-                if (sourcePack) return filters.compendiums;
-                return filters.rules;
-            });
+            for (const p of journalEntry.pages) {
+                // Read all flags once per page
+                const qrFlags = p.flags?.["daggerheart-quickrules"] || {};
+                const type = qrFlags.type;
+                const sourcePack = qrFlags.sourcePack;
+                const isRule = type === "rule";
+                if (isRule && !filters.rules) continue;
+                if (sourcePack && !isRule && !filters.compendiums) continue;
+                if (!isRule && !sourcePack && !filters.rules) continue;
+                if (!isGM && sourcePack && hiddenPacks.includes(sourcePack)) continue;
+                pages.push(p);
+                this._pageMap.set(p.id, p);
+                this._pageMetadata.set(p.id, {
+                    type,
+                    sourcePack,
+                    category: qrFlags.category,
+                    order: qrFlags.order,
+                    isCompendium: !!(sourcePack && compendiumPacks.includes(sourcePack)),
+                    isCustom: !type && !sourcePack,
+                    firstLetter: p.name.charAt(0).toUpperCase()
+                });
+            }
         }
         if (filters.custom) {
             const customFolderName = "📜 Custom Quick Rules";
             const customFolder = game.folders.find(f => f.name === customFolderName && f.type === "JournalEntry");
             if (customFolder) {
-                const customJournals = customFolder.contents; 
-                for (const journal of customJournals) {
+                for (const journal of customFolder.contents) {
                     for (const page of journal.pages) {
                         if (page.testUserPermission(game.user, "OBSERVER")) {
-                             pages.push(page);
+                            pages.push(page);
+                            this._pageMap.set(page.id, page);
+                            const qrFlags = page.flags?.["daggerheart-quickrules"] || {};
+                            this._pageMetadata.set(page.id, {
+                                type: qrFlags.type,
+                                sourcePack: qrFlags.sourcePack,
+                                category: qrFlags.category,
+                                order: qrFlags.order,
+                                isCompendium: false,
+                                isCustom: true,
+                                firstLetter: page.name.charAt(0).toUpperCase()
+                            });
                         }
                     }
                 }
             }
         }
-        if (!game.user.isGM) {
-            const hiddenPacks = ["daggerheart.adversaries", "daggerheart.environments"];
-            pages = pages.filter(p => {
-                const sourcePack = p.getFlag("daggerheart-quickrules", "sourcePack");
-                if (sourcePack && hiddenPacks.includes(sourcePack)) return false;
-                return true;
-            });
-        }
         pages.sort((a, b) => a.name.localeCompare(b.name));
         this._cachedPages = pages;
+        this._enrichCache.clear();
     }
 
     async _prepareContext(options) {
-        const theme = game.user.getFlag("daggerheart-quickrules", "theme") || "light";
-        const filters = game.user.getFlag("daggerheart-quickrules", "filters") || { rules: true, compendiums: true, custom: true };
-        const favorites = game.user.getFlag("daggerheart-quickrules", "favorites") || [];
-        const fontSize = game.user.getFlag("daggerheart-quickrules", "fontSize") || 14; 
-        this.deepSearch = game.user.getFlag("daggerheart-quickrules", "deepSearch") ?? false;
+        // Batch all user flags in one access
+        const userFlags = game.user.flags?.["daggerheart-quickrules"] || {};
+        const theme = userFlags.theme || "light";
+        const filters = userFlags.filters || { rules: true, compendiums: true, custom: true };
+        const favorites = userFlags.favorites || [];
+        const fontSize = userFlags.fontSize || 14;
+        this.deepSearch = userFlags.deepSearch ?? false;
+
         if (!this._cachedPages) await this._buildPageCache();
         let displayPages = this._cachedPages;
         if (this.viewMode === 'favorites') {
-            displayPages = displayPages.filter(p => favorites.includes(p.id));
+            const favSet = new Set(favorites);
+            displayPages = displayPages.filter(p => favSet.has(p.id));
         }
+        const isGM = game.user.isGM;
         const context = {
-            theme: theme, 
+            theme,
             hasPages: false,
             alphabetizedPages: {},
             activeContent: null,
             activePageName: "",
             viewMode: this.viewMode,
-            fontSize: fontSize,
-            filters: filters,
-            isGM: game.user.isGM,
+            fontSize,
+            filters,
+            isGM,
             prevPageId: null,
             nextPageId: null,
             hasRuleOrder: false,
             prevRuleId: null,
             nextRuleId: null,
             searchQuery: this.searchQuery,
-            deepSearch: this.deepSearch, 
-            isImage: false 
+            deepSearch: this.deepSearch,
+            isImage: false
         };
         if (displayPages.length === 0) return context;
         context.hasPages = true;
+
+        // Use Map and pre-computed metadata for active page
         if (this.selectedPageId) {
-            const currentPageObj = this._cachedPages.find(p => p.id === this.selectedPageId);
+            const currentPageObj = this._pageMap?.get(this.selectedPageId);
             if (currentPageObj) {
-                const currentOrder = currentPageObj.getFlag("daggerheart-quickrules", "order");
+                const meta = this._pageMetadata.get(this.selectedPageId);
+                const currentOrder = meta?.order;
                 if (Number.isInteger(currentOrder)) {
                     context.hasRuleOrder = true;
-                    const pPrev = this._cachedPages.find(p => p.getFlag("daggerheart-quickrules", "order") === currentOrder - 1);
-                    if (pPrev) context.prevRuleId = pPrev.id;
-                    const pNext = this._cachedPages.find(p => p.getFlag("daggerheart-quickrules", "order") === currentOrder + 1);
-                    if (pNext) context.nextRuleId = pNext.id;
+                    // Use metadata for neighbor lookup instead of scanning all pages
+                    for (const [id, m] of this._pageMetadata) {
+                        if (m.order === currentOrder - 1) context.prevRuleId = id;
+                        if (m.order === currentOrder + 1) context.nextRuleId = id;
+                        if (context.prevRuleId && context.nextRuleId) break;
+                    }
                 }
                 context.activePageName = currentPageObj.name;
                 context.isImage = (currentPageObj.type === "image");
@@ -346,9 +405,14 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         <img src="${currentPageObj.src}" style="max-width: 100%; max-height: 100%; object-fit: contain; border: none; box-shadow: none;">
                     </div>`;
                 } else {
-                    let contentHTML = await foundry.applications.ux.TextEditor.enrichHTML(currentPageObj.text.content, {
-                        secrets: game.user.isGM, async: true, relativeTo: currentPageObj
-                    });
+                    // Deferred enrichment with cache
+                    let contentHTML = this._enrichCache.get(this.selectedPageId);
+                    if (!contentHTML) {
+                        contentHTML = await foundry.applications.ux.TextEditor.enrichHTML(currentPageObj.text.content, {
+                            secrets: isGM, async: true, relativeTo: currentPageObj
+                        });
+                        this._enrichCache.set(this.selectedPageId, contentHTML);
+                    }
                     if (this.deepSearch && this.searchQuery) {
                         contentHTML = this._highlightText(contentHTML, this.searchQuery);
                     }
@@ -356,25 +420,22 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                 }
             }
         }
-        const compendiumPacks = [
-            "daggerheart.classes", "daggerheart.subclasses", "daggerheart.domains", "daggerheart.ancestries", 
-            "daggerheart.communities", "daggerheart.beastforms", "daggerheart.weapons", "daggerheart.armors", 
-            "daggerheart.consumables", "daggerheart.loot", "daggerheart.adversaries", "daggerheart.environments"
-        ];
+
+        // Build alphabetized groups using pre-computed metadata
+        const favSet = new Set(favorites);
         const grouped = {};
         for (const page of displayPages) {
-            const firstLetter = page.name.charAt(0).toUpperCase();
-            if (!grouped[firstLetter]) grouped[firstLetter] = [];
-            const isActive = this.selectedPageId === page.id;
-            const isFav = favorites.includes(page.id);
-            const type = page.getFlag("daggerheart-quickrules", "type");
-            const sourcePack = page.getFlag("daggerheart-quickrules", "sourcePack");
-            const category = page.getFlag("daggerheart-quickrules", "category");
-            const isCompendium = sourcePack && compendiumPacks.includes(sourcePack);
-            const isCustom = !type && !sourcePack;
-            grouped[firstLetter].push({
-                id: page.id, name: page.name, active: isActive, isFavorite: isFav,
-                isCompendium: isCompendium, isCustom: isCustom, category: category
+            const meta = this._pageMetadata.get(page.id);
+            const letter = meta?.firstLetter || page.name.charAt(0).toUpperCase();
+            if (!grouped[letter]) grouped[letter] = [];
+            grouped[letter].push({
+                id: page.id,
+                name: page.name,
+                active: this.selectedPageId === page.id,
+                isFavorite: favSet.has(page.id),
+                isCompendium: meta?.isCompendium || false,
+                isCustom: meta?.isCustom || false,
+                category: meta?.category || null
             });
         }
         context.alphabetizedPages = grouped;
@@ -462,7 +523,10 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         const currentFilters = game.user.getFlag("daggerheart-quickrules", "filters") || { rules: true, compendiums: true, custom: true };
         currentFilters[filterName] = !currentFilters[filterName];
         await game.user.setFlag("daggerheart-quickrules", "filters", currentFilters);
-        this._cachedPages = null; 
+        this._cachedPages = null;
+        this._pageMap = null;
+        this._pageMetadata = null;
+        this._enrichCache.clear();
         this.scrollPos = 0;
         this.render({ force: true });
     }
@@ -567,7 +631,8 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         event.preventDefault();
         if (!this.selectedPageId) return;
         let page = null;
-        if (this._cachedPages) page = this._cachedPages.find(p => p.id === this.selectedPageId);
+        if (this._pageMap) page = this._pageMap.get(this.selectedPageId);
+        else if (this._cachedPages) page = this._cachedPages.find(p => p.id === this.selectedPageId);
         if (!page) {
             const currentJournal = await this._getActiveJournal();
             if (currentJournal && currentJournal.pages.has(this.selectedPageId)) page = currentJournal.pages.get(this.selectedPageId);

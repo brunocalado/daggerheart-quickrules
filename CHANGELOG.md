@@ -1,3 +1,6 @@
+# 0.1.6
+- Cache
+
 # 0.1.5
 - It will remember the last floating button position.
 
