@@ -73,7 +73,7 @@ https://raw.githubusercontent.com/brunocalado/daggerheart-quickrules/main/module
 
 ## ⚖️ Credits
 
-* **License:** MIT License.
+* **Code License:** GNU GPLv3.
 
 * **Assets:** AI Audio and images provided are [CC0 1.0 Universal Public Domain](https://creativecommons.org/publicdomain/zero/1.0/).
 

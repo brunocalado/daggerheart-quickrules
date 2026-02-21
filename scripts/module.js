@@ -131,32 +131,46 @@ Hooks.once("ready", () => {
     }
 });
 
- // Hook to add button to Journal Notes sidebar (right side)
- Hooks.on("renderJournalDirectory", (_app, element, _data) => {
-     const html = element instanceof jQuery ? element[0] : element;
-     if (html.querySelector('#dh-journal-quickrules-btn')) return;
- 
-     const actionButtons = html.querySelector(".header-actions");
- 
-     if (actionButtons) {
-         const btn = document.createElement("button");
-         btn.id = "dh-journal-quickrules-btn";
-         btn.type = "button";
-         btn.classList.add("create-document"); // Use class from "Create Entry" for styling
-         btn.style.flex = "0 0 100%";
-         btn.style.maxWidth = "100%";
-         btn.style.marginTop = "0px";
-         btn.innerHTML = `<i class="fas fa-book-open"></i> Quick Rules`;
-         btn.title = "Open Daggerheart Quick Rules";
- 
-         btn.addEventListener("click", (e) => {
-             e.preventDefault();
-             if (window.QuickRules) window.QuickRules.Open();
-         });
- 
-         actionButtons.appendChild(btn);
-     }
- });
+
+// Hook to add button to Journal Notes sidebar (right side)
+Hooks.on("renderJournalDirectory", (_app, element, _data) => {
+    const html = element instanceof jQuery ? element[0] : element;
+    if (html.querySelector('#dh-journal-quickrules-btn')) return;
+
+    const actionButtons = html.querySelector(".header-actions");
+    if (!actionButtons) return;
+
+    const btn = document.createElement("button");
+    btn.id = "dh-journal-quickrules-btn";
+    btn.type = "button";
+    btn.classList.add("create-document");
+    btn.style.flex = "0 0 100%";
+    btn.style.maxWidth = "100%";
+    btn.innerHTML = `<i class="fas fa-book-open"></i> Quick Rules`;
+    btn.title = "Open Daggerheart Quick Rules";
+
+    btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (window.QuickRules) window.QuickRules.Open();
+    });
+
+    actionButtons.appendChild(btn);
+});
+
+// Hook to add button to Scene Controls (left toolbar) under Notes layer
+Hooks.on("getSceneControlButtons", (controls) => {
+    const notes = controls.notes;
+    if (!notes) return;
+    notes.tools.daggerheartQuickRules = {
+        name: "daggerheartQuickRules",
+        title: "Daggerheart Quick Rules",
+        icon: "fa-solid fa-book-open",
+        button: true,
+        onClick: () => {
+            if (window.QuickRules) window.QuickRules.Open();
+        }
+    };
+});
 
 // Hook to add button to Daggerheart Menu (sidebar)
 Hooks.on("renderDaggerheartMenu", (app, element, data) => {
