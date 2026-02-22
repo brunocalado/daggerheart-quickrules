@@ -1,5 +1,6 @@
 # 0.1.7
 - removed warning
+- Refactor
 
 # 0.1.6
 - Cache
