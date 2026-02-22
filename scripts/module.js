@@ -166,7 +166,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
         title: "Daggerheart Quick Rules",
         icon: "fa-solid fa-book-open",
         button: true,
-        onClick: () => {
+        onChange: () => {
             if (window.QuickRules) window.QuickRules.Open();
         }
     };
