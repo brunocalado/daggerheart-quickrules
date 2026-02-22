@@ -1,5 +1,6 @@
 # 0.1.8
 - Gemini Integration
+**WARNING! - READ THIS:** <https://github.com/brunocalado/daggerheart-quickrules/wiki/How-to-Configure-the-AI-Rules-Assistant-(Free-Tier)>
 
 # 0.1.7
 - removed warning
