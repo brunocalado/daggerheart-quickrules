@@ -50,11 +50,20 @@
                 </button>
 
                 {{!-- Deep Search Toggle Button --}}
-                <button type="button" class="dh-mode-btn square-btn dh-deep-search-btn {{#if deepSearch}}active{{/if}}" 
-                        data-action="toggleDeepSearch" 
+                <button type="button" class="dh-mode-btn square-btn dh-deep-search-btn {{#if deepSearch}}active{{/if}}"
+                        data-action="toggleDeepSearch"
                         data-tooltip="Toggle Deep Search (Search Inside Content)">
                     <i class="fas fa-file-alt"></i>
                 </button>
+
+                {{!-- AI Assistant Button (GM Only, requires API key) --}}
+                {{#if hasApiKey}}
+                <button type="button" class="dh-mode-btn square-btn dh-ai-btn"
+                        data-action="askAI"
+                        data-tooltip="Ask AI about search query">
+                    <i class="fas fa-robot"></i>
+                </button>
+                {{/if}}
             </div>
         </div>
         

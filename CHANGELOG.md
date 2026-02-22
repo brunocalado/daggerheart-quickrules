@@ -1,3 +1,6 @@
+# 0.1.8
+- Gemini Integration
+
 # 0.1.7
 - removed warning
 - Refactor

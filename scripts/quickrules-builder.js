@@ -38,10 +38,263 @@ function getHeaderLevel(node) {
 }
 
 /**
+ * Converts HTML content to plain text for AI-friendly output
+ */
+function htmlToPlainText(html) {
+    if (!html) return "";
+    const parser = new DOMParser();
+    try {
+        const doc = parser.parseFromString(html, "text/html");
+        // Remove script and style tags
+        doc.querySelectorAll('script, style').forEach(el => el.remove());
+        // Remove context details containers
+        doc.querySelectorAll('details.dh-context-details').forEach(el => el.remove());
+        // Get text content
+        let text = doc.body.innerText;
+        // Clean up multiple spaces while preserving line breaks conceptually
+        text = text.replace(/\s+/g, ' ').trim();
+        return text;
+    } catch (err) {
+        return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+}
+
+/**
+ * Builds the JSON export from source journals and compendiums
+ */
+async function buildJSONExport() {
+    const sourceCompendiumName = "daggerheart.journals";
+    const sourceJournalId = "uNs7ne9VCbbu5dcG";
+
+    const sourcePack = game.packs.get(sourceCompendiumName);
+    if (!sourcePack) throw new Error(`Source Compendium '${sourceCompendiumName}' not found.`);
+
+    const sourceJournal = await sourcePack.getDocument(sourceJournalId);
+    if (!sourceJournal) throw new Error("Source Journal not found.");
+
+    const jsonData = {
+        metadata: {
+            title: "Daggerheart Quick Rules - Complete SRD"
+        },
+        rules: [],
+        items: {
+            classes: [],
+            subclasses: [],
+            domains: [],
+            ancestries: [],
+            communities: [],
+            weapons: [],
+            armors: [],
+            consumables: [],
+            loot: [],
+            beastforms: [],
+            adversaries: [],
+            environments: []
+        }
+    };
+
+    // RULES PROCESSING
+    const pages = sourceJournal.pages.contents.sort((a, b) => a.sort - b.sort);
+
+    for (const page of pages) {
+        if (page.type !== "text") continue;
+        const content = page.text.content;
+        if (!content) continue;
+
+        const plainText = htmlToPlainText(content);
+        jsonData.rules.push({
+            name: formatTitle(page.name),
+            content: plainText
+        });
+    }
+
+    // COMPENDIUM ITEMS PROCESSING
+    for (const packName of COMPENDIUM_LIST) {
+        const pack = game.packs.get(packName);
+        if (!pack) continue;
+
+        try {
+            const documents = await pack.getDocuments();
+            for (const item of documents) {
+                const rawDesc = item.system?.description?.value || item.system?.description || "";
+                const desc = htmlToPlainText(rawDesc);
+
+                const itemData = {
+                    name: item.name,
+                    type: item.type
+                };
+                if (desc) itemData.description = desc;
+
+                // Add type-specific fields
+                if (packName === "daggerheart.domains" && item.type === "domainCard") {
+                    itemData.domainType = item.system?.type || "-";
+                    itemData.domain = item.system?.domain || "-";
+                    itemData.level = item.system?.level ?? "-";
+                    itemData.recallCost = item.system?.recallCost ?? "-";
+                    jsonData.items.domains.push(itemData);
+                } else if (packName === "daggerheart.adversaries" && item.type === "adversary") {
+                    itemData.tier = item.system?.tier ?? "-";
+                    itemData.adversaryType = item.system?.type ? String(item.system.type).charAt(0).toUpperCase() + String(item.system.type).slice(1) : "-";
+                    itemData.difficulty = item.system?.difficulty ?? "-";
+                    itemData.hitPoints = item.system?.resources?.hitPoints?.max ?? "-";
+                    itemData.stress = item.system?.resources?.stress?.max ?? "-";
+                    itemData.motivesAndTactics = htmlToPlainText(item.system?.motivesAndTactics || "");
+
+                    if (item.items && item.items.size > 0) {
+                        const features = item.items.filter(i => i.type === "feature");
+                        itemData.features = features.map(feat => ({
+                            name: feat.name,
+                            form: feat.system?.featureForm || "passive",
+                            description: htmlToPlainText(feat.system?.description || "")
+                        }));
+                    }
+                    jsonData.items.adversaries.push(itemData);
+                } else if (packName === "daggerheart.environments" && item.type === "environment") {
+                    itemData.tier = item.system?.tier ?? "-";
+                    itemData.environmentType = item.system?.type ? String(item.system.type).charAt(0).toUpperCase() + String(item.system.type).slice(1) : "-";
+                    itemData.difficulty = item.system?.difficulty ?? "-";
+                    itemData.impulses = htmlToPlainText(item.system?.impulses || "");
+
+                    if (item.items && item.items.size > 0) {
+                        const features = item.items.filter(i => i.type === "feature");
+                        itemData.features = features.map(feat => ({
+                            name: feat.name,
+                            form: feat.system?.featureForm || "passive",
+                            description: htmlToPlainText(feat.system?.description || "")
+                        }));
+                    }
+                    jsonData.items.environments.push(itemData);
+                } else if (packName === "daggerheart.beastforms" && item.type === "beastform") {
+                    const sys = item.system;
+                    if (sys?.tier) itemData.tier = sys.tier;
+                    if (sys?.mainTrait) itemData.trait = String(sys.mainTrait).charAt(0).toUpperCase() + String(sys.mainTrait).slice(1);
+                    if (sys?.examples) itemData.examples = sys.examples;
+
+                    if (sys?.advantageOn && typeof sys.advantageOn === 'object') {
+                        try {
+                            const advValues = Object.values(sys.advantageOn).map(o => o.value).filter(Boolean);
+                            if (advValues.length > 0) itemData.advantageOn = advValues;
+                        } catch (e) {
+                            // skip empty advantageOn
+                        }
+                    }
+                    jsonData.items.beastforms.push(itemData);
+                } else if (packName === "daggerheart.classes" && item.type === "class") {
+                    jsonData.items.classes.push(itemData);
+                } else if (packName === "daggerheart.classes" && item.type === "feature") {
+                    itemData.featureType = "Class Feature";
+                    jsonData.items.classes.push(itemData);
+                } else if (packName === "daggerheart.subclasses" && item.type === "subclass") {
+                    jsonData.items.subclasses.push(itemData);
+                } else if (packName === "daggerheart.subclasses" && item.type === "feature") {
+                    itemData.featureType = "Subclass Feature";
+                    jsonData.items.subclasses.push(itemData);
+                } else if (packName === "daggerheart.ancestries" && item.type === "ancestry") {
+                    jsonData.items.ancestries.push(itemData);
+                } else if (packName === "daggerheart.ancestries" && item.type === "feature") {
+                    itemData.featureType = "Ancestry Feature";
+                    jsonData.items.ancestries.push(itemData);
+                } else if (packName === "daggerheart.communities" && item.type === "community") {
+                    jsonData.items.communities.push(itemData);
+                } else if (packName === "daggerheart.communities" && item.type === "feature") {
+                    itemData.featureType = "Community Feature";
+                    jsonData.items.communities.push(itemData);
+                } else if (packName === "daggerheart.weapons" && item.type === "weapon") {
+                    jsonData.items.weapons.push(itemData);
+                } else if (packName === "daggerheart.armors" && item.type === "armor") {
+                    jsonData.items.armors.push(itemData);
+                } else if (packName === "daggerheart.consumables" && item.type === "consumable") {
+                    jsonData.items.consumables.push(itemData);
+                } else if (packName === "daggerheart.loot" && item.type === "loot") {
+                    jsonData.items.loot.push(itemData);
+                }
+            }
+        } catch (err) {
+            console.warn(`Daggerheart QuickRules | Error processing pack ${packName}:`, err);
+        }
+    }
+
+    // Remove empty item categories
+    Object.keys(jsonData.items).forEach(category => {
+        if (Array.isArray(jsonData.items[category]) && jsonData.items[category].length === 0) {
+            delete jsonData.items[category];
+        }
+    });
+
+    // Clean all items: remove fields with empty/falsy/placeholder values
+    function cleanObject(obj) {
+        if (Array.isArray(obj)) {
+            const cleaned = obj.map(cleanObject).filter(item => {
+                if (item === null || item === undefined || item === "" || item === "-") return false;
+                if (typeof item === 'object' && !Array.isArray(item) && Object.keys(item).length === 0) return false;
+                return true;
+            });
+            return cleaned.length > 0 ? cleaned : undefined;
+        }
+        if (obj && typeof obj === 'object') {
+            const cleaned = {};
+            for (const [key, value] of Object.entries(obj)) {
+                const cleanedValue = cleanObject(value);
+                if (cleanedValue === "" || cleanedValue === null || cleanedValue === undefined || cleanedValue === "-") continue;
+                if (Array.isArray(cleanedValue) && cleanedValue.length === 0) continue;
+                if (typeof cleanedValue === 'object' && !Array.isArray(cleanedValue) && Object.keys(cleanedValue).length === 0) continue;
+                cleaned[key] = cleanedValue;
+            }
+            return cleaned;
+        }
+        return obj;
+    }
+
+    const optimizedData = cleanObject(jsonData);
+
+    // Download the JSON file
+    downloadJSON(optimizedData, `daggerheart-quickrules-${new Date().toISOString().split('T')[0]}.json`);
+}
+
+/**
+ * Triggers a JSON file download
+ */
+function downloadJSON(data, filename = "daggerheart-quickrules.json") {
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.style.display = "none";
+    link.href = url;
+    link.download = filename;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+
+    // Force download with a small delay to ensure browser processes it
+    setTimeout(() => {
+        link.click();
+        setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }, 100);
+    }, 50);
+}
+
+/**
  * Builds the Quick Rules SRD compendium from source data.
- * @param {string} mode - 'All' for full build (rules + compendiums) or 'Rules' for rules only.
+ * @param {string} mode - 'All' for full build (rules + compendiums), 'Rules' for rules only, or 'json' for JSON export.
  */
 export async function buildSRD(mode = 'All') {
+    // Handle JSON export mode
+    if (mode === 'json') {
+        console.log("Daggerheart QuickRules | JSON Export Started.");
+        ui.notifications.info("Daggerheart QuickRules | Generating JSON export. Please wait...");
+
+        try {
+            await buildJSONExport();
+            ui.notifications.info("Daggerheart QuickRules | JSON export complete! File downloaded.");
+        } catch (err) {
+            console.error("Daggerheart QuickRules | Error during JSON export:", err);
+            ui.notifications.error("Daggerheart QuickRules | Error during JSON export. Check console.");
+        }
+        return;
+    }
+
     const sourceCompendiumName = "daggerheart.journals";
     const sourceJournalId = "uNs7ne9VCbbu5dcG";
     const targetPackName = "daggerheart-quickrules.quickrules";

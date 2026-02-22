@@ -1,4 +1,5 @@
 import { DaggerheartQuickRules } from "./quickrules.js";
+import { initAIAssistant } from "./ai-assistant.js";
 
 const MODULE_ID = "daggerheart-quickrules";
 
@@ -123,6 +124,9 @@ Hooks.once("init", () => {
     // Expose the class globally for console access and macros
     window.DaggerheartQuickRules = DaggerheartQuickRules;
     window.QuickRules = DaggerheartQuickRules;
+
+    // AI Assistant (Gemini-powered /h chat command)
+    initAIAssistant();
 });
 
 Hooks.once("ready", () => {
