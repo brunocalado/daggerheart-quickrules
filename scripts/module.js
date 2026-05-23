@@ -233,8 +233,20 @@ function toggleFloatingButton(show) {
 
         document.body.appendChild(btn);
 
-        btn.style.left = `${savedPos.left}px`;
-        btn.style.top = `${savedPos.top}px`;
+        // Clamp the saved position to the viewport with a safety margin so the button
+        // never loads in an inaccessible off-screen location (e.g. after a resolution change).
+        const SAFETY_MARGIN = 10;
+        const clampedLeft = Math.min(
+            Math.max(SAFETY_MARGIN, savedPos.left),
+            window.innerWidth - btn.offsetWidth - SAFETY_MARGIN
+        );
+        const clampedTop = Math.min(
+            Math.max(SAFETY_MARGIN, savedPos.top),
+            window.innerHeight - btn.offsetHeight - SAFETY_MARGIN
+        );
+
+        btn.style.left = `${clampedLeft}px`;
+        btn.style.top = `${clampedTop}px`;
 
         // --- Drag & Click Logic ---
         // Use AbortController so all window-level listeners are removed together
@@ -283,8 +295,19 @@ function toggleFloatingButton(show) {
             if (Math.sqrt(dx * dx + dy * dy) > dragThreshold) {
                 hasDragged = true;
                 e.preventDefault();
-                btn.style.left = `${initialLeft + dx}px`;
-                btn.style.top = `${initialTop + dy}px`;
+
+                // Clamp to viewport bounds so the button cannot be dragged off-screen.
+                const SAFETY_MARGIN = 10;
+                const newLeft = Math.min(
+                    Math.max(SAFETY_MARGIN, initialLeft + dx),
+                    window.innerWidth - btn.offsetWidth - SAFETY_MARGIN
+                );
+                const newTop = Math.min(
+                    Math.max(SAFETY_MARGIN, initialTop + dy),
+                    window.innerHeight - btn.offsetHeight - SAFETY_MARGIN
+                );
+                btn.style.left = `${newLeft}px`;
+                btn.style.top = `${newTop}px`;
             }
         }, { signal });
 
