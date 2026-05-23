@@ -3,6 +3,8 @@
  * Parses source journals and compendiums to construct the Quick Rules data.
  */
 
+import { MODULE_ID } from "./constants.js";
+
 const PROTECTED_ACRONYMS = ["NPC", "NPCS", "GM", "GMS", "HP", "AP", "DC"];
 const MINOR_WORDS = ["is", "your", "a", "the", "on", "in", "to", "of", "an", "and", "with"];
 const COMPENDIUM_LIST = [
@@ -297,7 +299,7 @@ export async function buildSRD(mode = 'All') {
 
     const sourceCompendiumName = "daggerheart.journals";
     const sourceJournalId = "uNs7ne9VCbbu5dcG";
-    const targetPackName = "daggerheart-quickrules.quickrules";
+    const targetPackName = `${MODULE_ID}.quickrules`;
     const targetJournalName = (mode === 'All') ? "Daggerheart SRD - All" : "Daggerheart SRD - Rules";
 
     console.log(`Daggerheart QuickRules | Build Started (${mode}).`);
@@ -358,7 +360,7 @@ export async function buildSRD(mode = 'All') {
             name: formatTitle(page.name),
             text: { content: content, format: 1 },
             title: { show: true, level: 1 },
-            flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
+            flags: { [MODULE_ID]: { type: "rule", order: ruleIndex++ } }
         });
 
         if (children.length === 0) continue;
@@ -375,7 +377,7 @@ export async function buildSRD(mode = 'All') {
                     name: formatTitle(page.name) + " (Intro)",
                     text: { content: introBuffer, format: 1 },
                     title: { show: false, level: 1 },
-                    flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
+                    flags: { [MODULE_ID]: { type: "rule", order: ruleIndex++ } }
                 });
             }
         }
@@ -429,7 +431,7 @@ export async function buildSRD(mode = 'All') {
                         name: title,
                         text: { content: contentHtml, format: 1 },
                         title: { show: false, level: 1 },
-                        flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
+                        flags: { [MODULE_ID]: { type: "rule", order: ruleIndex++ } }
                     });
                 }
             }
@@ -467,7 +469,7 @@ export async function buildSRD(mode = 'All') {
                             name: formatTitle(term),
                             text: { content: listContext + fullListHtml, format: 1 },
                             title: { show: false, level: 1 },
-                            flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
+                            flags: { [MODULE_ID]: { type: "rule", order: ruleIndex++ } }
                         });
                     }
                 }
@@ -499,7 +501,7 @@ export async function buildSRD(mode = 'All') {
                     name: sectionTitle,
                     text: { content: sectionBuffer, format: 1 },
                     title: { show: false, level: 1 },
-                    flags: { "daggerheart-quickrules": { type: "rule", order: ruleIndex++ } }
+                    flags: { [MODULE_ID]: { type: "rule", order: ruleIndex++ } }
                 });
             }
         }
@@ -599,7 +601,7 @@ export async function buildSRD(mode = 'All') {
                                         name: pageTitle,
                                         text: { content: pageHtml, format: 1 },
                                         title: { show: false, level: 1 },
-                                        flags: { "daggerheart-quickrules": { sourcePack: packName, category: "Spell" } }
+                                        flags: { [MODULE_ID]: { sourcePack: packName, category: "Spell" } }
                                     });
                                 }
                             }
@@ -804,7 +806,7 @@ export async function buildSRD(mode = 'All') {
                         name: itemName,
                         text: { content: pageContent, format: 1 },
                         title: { show: false, level: 1 },
-                        flags: { "daggerheart-quickrules": { sourcePack: packName, category: categoryFlag } }
+                        flags: { [MODULE_ID]: { sourcePack: packName, category: categoryFlag } }
                     });
                 }
             } catch (err) {
@@ -887,7 +889,7 @@ export async function buildSRD(mode = 'All') {
                         name: cleanName,
                         text: { content: tableHtml, format: 1 },
                         title: { show: false, level: 1 },
-                        flags: { "daggerheart-quickrules": { type: "rule" } }
+                        flags: { [MODULE_ID]: { type: "rule" } }
                     });
                 }
             } else {
@@ -937,7 +939,7 @@ export async function buildSRD(mode = 'All') {
                     name: "Adversaries by Type",
                     text: { content: summaryHtml, format: 1 },
                     title: { show: false, level: 1 },
-                    flags: { "daggerheart-quickrules": { type: "rule" } }
+                    flags: { [MODULE_ID]: { type: "rule" } }
                 });
             }
         } catch (e) {
@@ -988,7 +990,7 @@ export async function buildSRD(mode = 'All') {
                         name: `${domainName} - All Cards`,
                         text: { content: summaryHtml, format: 1 },
                         title: { show: false, level: 1 },
-                        flags: { "daggerheart-quickrules": { type: "rule" } }
+                        flags: { [MODULE_ID]: { type: "rule" } }
                     });
                 }
             }

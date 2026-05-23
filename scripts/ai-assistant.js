@@ -1,4 +1,5 @@
-const MODULE_ID = "daggerheart-quickrules";
+import { MODULE_ID } from "./constants.js";
+
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 const MODELS = {

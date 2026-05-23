@@ -1,11 +1,12 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+import { MODULE_ID } from "./constants.js";
 import { DaggerheartAddMyContent } from "./addmycontent.js";
 import { buildSRD } from "./quickrules-builder.js";
 import { callGeminiAPI, loadSRD } from "./ai-assistant.js";
 
 /**
  * Main Quick Rules Application for Daggerheart
- * Uses ApplicationV2 from Foundry V13
+ * Uses ApplicationV2 from Foundry V14
  */
 export class DaggerheartQuickRules extends HandlebarsApplicationMixin(ApplicationV2) {
     // ... constructor ... 
@@ -25,11 +26,11 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
     /** @override */
     static DEFAULT_OPTIONS = {
-        id: "daggerheart-quickrules",
+        id: MODULE_ID,
         tag: "form",
-        classes: ["daggerheart-quickrules-window"], 
+        classes: ["daggerheart-quickrules-window"],
         window: {
-            title: "Daggerheart: Quick Rules", 
+            title: "Daggerheart: Quick Rules",
             icon: "fas fa-book-open",
             resizable: true,
             controls: []
@@ -57,17 +58,17 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     /** @override */
     static PARTS = {
         main: {
-            template: "modules/daggerheart-quickrules/templates/screen.hbs"
+            template: `modules/${MODULE_ID}/templates/screen.hbs`
         }
     };
 
     /* --- STATIC SHORTCUTS --- */
     static Open() {
-        const existing = Object.values(ui.windows).find(w => w.id === "daggerheart-quickrules");
+        const existing = Object.values(ui.windows).find(w => w.id === MODULE_ID);
         if (existing) {
-            existing.render(true, { focus: true });
+            existing.render({ force: true, focus: true });
         } else {
-            new DaggerheartQuickRules().render(true);
+            new DaggerheartQuickRules().render({ force: true });
         }
     }
 
@@ -76,15 +77,15 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     }
 
     static async Reset() {
-        await game.user.unsetFlag("daggerheart-quickrules", "favorites");
-        await game.user.unsetFlag("daggerheart-quickrules", "filters");
-        await game.user.unsetFlag("daggerheart-quickrules", "fontSize");
-        await game.user.unsetFlag("daggerheart-quickrules", "theme");
-        await game.user.unsetFlag("daggerheart-quickrules", "deepSearch");
-        
-        const existing = Object.values(ui.windows).find(w => w.id === "daggerheart-quickrules");
+        await game.user.unsetFlag(MODULE_ID, "favorites");
+        await game.user.unsetFlag(MODULE_ID, "filters");
+        await game.user.unsetFlag(MODULE_ID, "fontSize");
+        await game.user.unsetFlag(MODULE_ID, "theme");
+        await game.user.unsetFlag(MODULE_ID, "deepSearch");
+
+        const existing = Object.values(ui.windows).find(w => w.id === MODULE_ID);
         if (existing) existing.close();
-        
+
         ui.notifications.info("Daggerheart Quick Rules | User settings reset.");
     }
 
@@ -93,7 +94,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
      * (Renamed from AddMyStuff)
      */
     static AddMyContent() {
-        new DaggerheartAddMyContent().render(true);
+        new DaggerheartAddMyContent().render({ force: true });
     }
 
     async navigateToPage(pageId) {
@@ -113,7 +114,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         if (activeButton) activeButton.classList.add('active');
 
         const isGM = game.user.isGM;
-        const userFlags = game.user.flags?.["daggerheart-quickrules"] || {};
+        const userFlags = game.user.flags?.[MODULE_ID] || {};
         const fontSize = userFlags.fontSize || 14;
         const theme = userFlags.theme || "light";
 
@@ -147,7 +148,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         let nextRuleId = null;
         let hasRuleOrder = false;
         const meta = this._pageMetadata?.get(pageId);
-        const currentOrder = meta?.order ?? page.getFlag("daggerheart-quickrules", "order");
+        const currentOrder = meta?.order ?? page.getFlag(MODULE_ID, "order");
         if (Number.isInteger(currentOrder)) {
             hasRuleOrder = true;
             if (this._pageMetadata) {
@@ -264,7 +265,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
     async _getActiveJournal() {
         if (this._journalEntry) return this._journalEntry;
-        const packName = "daggerheart-quickrules.quickrules";
+        const packName = `${MODULE_ID}.quickrules`;
         const pack = game.packs.get(packName);
         if (!pack) return null;
         let journals = await pack.getDocuments({name: "Daggerheart SRD - All"});
@@ -282,7 +283,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
     async _buildPageCache() {
         const defaultFilters = { rules: true, compendiums: true, custom: true };
-        const filters = game.user.getFlag("daggerheart-quickrules", "filters") ?? defaultFilters;
+        const filters = game.user.getFlag(MODULE_ID, "filters") ?? defaultFilters;
         const isGM = game.user.isGM;
         const hiddenPacks = isGM ? [] : ["daggerheart.adversaries", "daggerheart.environments"];
         const compendiumPacks = [
@@ -298,7 +299,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         if (journalEntry) {
             for (const p of journalEntry.pages) {
                 // Read all flags once per page
-                const qrFlags = p.flags?.["daggerheart-quickrules"] || {};
+                const qrFlags = p.flags?.[MODULE_ID] || {};
                 const type = qrFlags.type;
                 const sourcePack = qrFlags.sourcePack;
                 const isRule = type === "rule";
@@ -328,7 +329,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
                         if (page.testUserPermission(game.user, "OBSERVER")) {
                             pages.push(page);
                             this._pageMap.set(page.id, page);
-                            const qrFlags = page.flags?.["daggerheart-quickrules"] || {};
+                            const qrFlags = page.flags?.[MODULE_ID] || {};
                             this._pageMetadata.set(page.id, {
                                 type: qrFlags.type,
                                 sourcePack: qrFlags.sourcePack,
@@ -350,7 +351,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
     async _prepareContext(options) {
         // Batch all user flags in one access
-        const userFlags = game.user.flags?.["daggerheart-quickrules"] || {};
+        const userFlags = game.user.flags?.[MODULE_ID] || {};
         const theme = userFlags.theme || "light";
         const filters = userFlags.filters || { rules: true, compendiums: true, custom: true };
         const favorites = userFlags.favorites || [];
@@ -382,7 +383,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             searchQuery: this.searchQuery,
             deepSearch: this.deepSearch,
             isImage: false,
-            hasApiKey: isGM && !!game.settings.get("daggerheart-quickrules", "geminiApiKey")
+            hasApiKey: isGM && !!game.settings.get(MODULE_ID, "geminiApiKey")
         };
         if (displayPages.length === 0) return context;
         context.hasPages = true;
@@ -504,7 +505,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     static async _onToggleDeepSearch(event, target) {
         event.preventDefault();
         this.deepSearch = !this.deepSearch;
-        await game.user.setFlag("daggerheart-quickrules", "deepSearch", this.deepSearch);
+        await game.user.setFlag(MODULE_ID, "deepSearch", this.deepSearch);
         if (this.deepSearch) target.classList.add('active');
         else target.classList.remove('active');
         if (this.searchQuery) {
@@ -515,18 +516,18 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
 
     static async _onToggleTheme(event, target) {
         event.preventDefault();
-        const currentTheme = game.user.getFlag("daggerheart-quickrules", "theme") || "light";
+        const currentTheme = game.user.getFlag(MODULE_ID, "theme") || "light";
         const newTheme = currentTheme === "dark" ? "light" : "dark";
-        await game.user.setFlag("daggerheart-quickrules", "theme", newTheme);
+        await game.user.setFlag(MODULE_ID, "theme", newTheme);
         this.render(); 
     }
 
     static async _onToggleFilter(event, target) {
         event.preventDefault();
         const filterName = target.dataset.filter;
-        const currentFilters = game.user.getFlag("daggerheart-quickrules", "filters") || { rules: true, compendiums: true, custom: true };
+        const currentFilters = game.user.getFlag(MODULE_ID, "filters") || { rules: true, compendiums: true, custom: true };
         currentFilters[filterName] = !currentFilters[filterName];
-        await game.user.setFlag("daggerheart-quickrules", "filters", currentFilters);
+        await game.user.setFlag(MODULE_ID, "filters", currentFilters);
         this._cachedPages = null;
         this._pageMap = null;
         this._pageMetadata = null;
@@ -538,13 +539,13 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     static async _onChangeFontSize(event, target) {
         event.preventDefault();
         const direction = target.dataset.direction;
-        let currentSize = game.user.getFlag("daggerheart-quickrules", "fontSize") || 14; 
+        let currentSize = game.user.getFlag(MODULE_ID, "fontSize") || 14;
         if (direction === "reset") currentSize = 14;
         else if (direction === "up") currentSize += 2;
         else currentSize -= 2;
         if (currentSize < 10) currentSize = 10;
         if (currentSize > 32) currentSize = 32;
-        await game.user.setFlag("daggerheart-quickrules", "fontSize", currentSize);
+        await game.user.setFlag(MODULE_ID, "fontSize", currentSize);
         const contentArea = this.element.querySelector('.dh-content-area');
         if (contentArea) contentArea.style.fontSize = `${currentSize}px`;
         else this.render({ force: true });
@@ -582,10 +583,10 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         event.preventDefault();
         event.stopPropagation();
         const pageId = target.dataset.pageId;
-        let favorites = game.user.getFlag("daggerheart-quickrules", "favorites") || [];
+        let favorites = game.user.getFlag(MODULE_ID, "favorites") || [];
         if (favorites.includes(pageId)) favorites = favorites.filter(id => id !== pageId);
         else favorites.push(pageId);
-        await game.user.setFlag("daggerheart-quickrules", "favorites", favorites);
+        await game.user.setFlag(MODULE_ID, "favorites", favorites);
         if (this.viewMode === 'favorites') {
              const listContainer = this.element.querySelector('.dh-page-list');
              if (listContainer) this.scrollPos = listContainer.scrollTop;
@@ -613,7 +614,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             ui.notifications.warn("Please select a page first to show to players.");
             return;
         }
-        await game.settings.set("daggerheart-quickrules", "forceOpenRequest", {
+        await game.settings.set(MODULE_ID, "forceOpenRequest", {
             pageId: this.selectedPageId,
             time: Date.now() 
         });
@@ -681,14 +682,14 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             return;
         }
 
-        const apiKey = game.settings.get("daggerheart-quickrules", "geminiApiKey");
-        const model = game.settings.get("daggerheart-quickrules", "geminiModel");
+        const apiKey = game.settings.get(MODULE_ID, "geminiApiKey");
+        const model = game.settings.get(MODULE_ID, "geminiModel");
         if (!apiKey) {
             ui.notifications.warn("Gemini API key is not configured in Module Settings.");
             return;
         }
 
-        const userFlags = game.user.flags?.["daggerheart-quickrules"] || {};
+        const userFlags = game.user.flags?.[MODULE_ID] || {};
         const fontSize = userFlags.fontSize || 14;
 
         // Show loading state in content area

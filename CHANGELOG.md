@@ -1,3 +1,11 @@
+# 0.2.0
+
+- v14 only
+- [Fixed] Memory leak: drag event listeners on floating button no longer accumulate on toggle (AbortController)
+- [Fixed] render() calls now use ApplicationV2 v14 API (`render({ force: true })` instead of v1 `render(true)`)
+- [Changed] MODULE_ID centralized in `scripts/constants.js` — single source of truth for module ID across all files
+- [Changed] CSS selectors for body-injected elements (floating button, journal sidebar button) now prefixed with `body` selector and documented
+
 # 0.1.8
 - Gemini Integration
 **WARNING! - READ THIS:** <https://github.com/brunocalado/daggerheart-quickrules/wiki/How-to-Configure-the-AI-Rules-Assistant-(Free-Tier)>

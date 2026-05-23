@@ -1,26 +1,29 @@
 {
   "id": "daggerheart-quickrules",
   "title": "Daggerheart: Quick Rules",
-  "version": "0.1.8",
-  
+  "description": "A quick reference module for displaying the Daggerheart SRD content.",  
+  "version": "0.2.0",
+
   "compatibility": {
-    "minimum": "13",
-    "verified": "13"
+    "minimum": "14",
+    "verified": "14"
   },
-  
+
   "authors": [
     {
-      "name": "Mestre Digital"
+      "name": "Mestre Digital",
+      "url": "http://youtube.com/@mestredigital",
+      "flags": {}
     }
   ],
-  
+
   "esmodules": [
     "scripts/module.js"
   ],
   "styles": [
     "styles/quickrules.css"
   ],
-  
+
   "relationships": {
     "systems": [
       {
@@ -33,17 +36,19 @@
     ]
   },
 
-  "media": [{
-    "type": "setup",
-    "url": "modules/daggerheart-quickrules/assets/images/thumbnail.webp",
-    "thumbnail": "modules/daggerheart-quickrules/assets/images/thumbnail.webp"
-  }], 
-  
+  "media": [
+    {
+      "type": "setup",
+      "url": "modules/daggerheart-quickrules/assets/images/thumbnail.webp",
+      "thumbnail": "modules/daggerheart-quickrules/assets/images/thumbnail.webp",
+      "loop": false,
+      "flags": {}
+    }
+  ],
+
   "url": "https://github.com/brunocalado/daggerheart-quickrules",
   "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-quickrules/main/module.json",
   "download": "https://codeload.github.com/brunocalado/daggerheart-quickrules/zip/main",
-  
-  "description": "A quick reference module for displaying the Daggerheart SRD content.",
   
   "packs": [
     {
@@ -57,7 +62,7 @@
         "ASSISTANT": "OWNER"
       },
       "flags": {},
-      "banner": "modules/daggerheart-quickrules/assets/images/banner.webp" 
+      "banner": "modules/daggerheart-quickrules/assets/images/banner.webp"
     },
     {
       "label": "Macros",
@@ -70,20 +75,20 @@
         "ASSISTANT": "OWNER"
       },
       "flags": {},
-      "banner": "modules/daggerheart-quickrules/assets/images/banner.webp" 
-    }    
+      "banner": "modules/daggerheart-quickrules/assets/images/banner.webp"
+    }
   ],
-
   "packFolders": [
     {
       "name": "📜 Quick Rules 📜",
       "sorting": "a",
       "color": "#5c0547",
-      "packs": [        
+      "packs": [
         "quickrules",
         "macros"
       ],
       "folders": []
     }
-  ]  
+  ],
+  "flags": {}
 }

@@ -1,4 +1,5 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+import { MODULE_ID } from "./constants.js";
 
 export class DaggerheartAddMyContent extends HandlebarsApplicationMixin(ApplicationV2) {
     
@@ -228,7 +229,7 @@ export class DaggerheartAddMyContent extends HandlebarsApplicationMixin(Applicat
         }
         
         // Refresh Quick Rules
-        const quickRulesApp = Object.values(ui.windows).find(w => w.id === "daggerheart-quickrules");
+        const quickRulesApp = Object.values(ui.windows).find(w => w.id === MODULE_ID);
         if (quickRulesApp) {
             quickRulesApp._cachedPages = null; 
             quickRulesApp.render();
@@ -394,10 +395,10 @@ export class DaggerheartAddMyContent extends HandlebarsApplicationMixin(Applicat
             text: { content: content, format: 1 },
             title: { show: false }, 
             ownership: permissions,
-            flags: { 
-                "daggerheart-quickrules": { 
+            flags: {
+                [MODULE_ID]: {
                     category: category
-                } 
+                }
             }
         };
     }

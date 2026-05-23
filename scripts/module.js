@@ -1,7 +1,6 @@
 import { DaggerheartQuickRules } from "./quickrules.js";
 import { initAIAssistant } from "./ai-assistant.js";
-
-const MODULE_ID = "daggerheart-quickrules";
+import { MODULE_ID } from "./constants.js";
 
 Hooks.once("init", () => {
     console.log("Daggerheart Quick Rules | Initializing...");
@@ -81,7 +80,7 @@ Hooks.once("init", () => {
             if (timeDiff > 10000) return; // Ignores if the request is older than 10 seconds
 
             // Finds the window if it is already open
-            const existingApp = Object.values(ui.windows).find(w => w.id === "daggerheart-quickrules");
+            const existingApp = Object.values(ui.windows).find(w => w.id === MODULE_ID);
 
             if (existingApp) {
                 // If already open, focus on it and navigate to the page
@@ -109,7 +108,7 @@ Hooks.once("init", () => {
         ],
         onDown: () => {
             // Check if we should toggle (close if open) or just open
-            const existingApp = Object.values(ui.windows).find(w => w.id === "daggerheart-quickrules");
+            const existingApp = Object.values(ui.windows).find(w => w.id === MODULE_ID);
             if (existingApp) {
                 existingApp.close();
             } else {
@@ -212,47 +211,50 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
 
 function toggleFloatingButton(show) {
     const existingBtn = document.getElementById("dh-quickrules-trigger");
-    if (existingBtn) existingBtn.remove();
+    if (existingBtn) {
+        // Abort any lingering drag listeners from the previous button instance.
+        existingBtn._dragAbortController?.abort();
+        existingBtn.remove();
+    }
 
     if (show) {
         const btn = document.createElement("div");
         btn.id = "dh-quickrules-trigger";
         btn.innerHTML = '<i class="fas fa-question"></i>';
         btn.title = "Open Daggerheart Quick Rules";
-        
+
         const size = game.settings.get(MODULE_ID, "floatingButtonSize");
         const pulse = game.settings.get(MODULE_ID, "pulseFloatingButton");
-        
-        // --- ATUALIZADO: Recuperar Posição Salva ---
+
         const savedPos = game.settings.get(MODULE_ID, "floatingButtonPosition");
-        
+
         btn.classList.add(`size-${size}`);
-        
-        // Add class .pulse if setting is active
-        if (pulse) {
-            btn.classList.add("pulse");
-        }
+        if (pulse) btn.classList.add("pulse");
 
         document.body.appendChild(btn);
 
-        // Position logic (usa a posição salva ou o padrão)
         btn.style.left = `${savedPos.left}px`;
         btn.style.top = `${savedPos.top}px`;
 
         // --- Drag & Click Logic ---
+        // Use AbortController so all window-level listeners are removed together
+        // when the button is torn down, preventing listener accumulation.
+        const dragController = new AbortController();
+        btn._dragAbortController = dragController;
+        const signal = dragController.signal;
+
         let isDragging = false;
         let hasDragged = false;
         let startX, startY, initialLeft, initialTop;
-        const dragThreshold = 3; 
+        const dragThreshold = 3;
 
         btn.addEventListener('click', (e) => {
             if (hasDragged) {
                 e.preventDefault();
                 e.stopPropagation();
-                hasDragged = false; 
+                hasDragged = false;
                 return;
             }
-            // V13 AppV2: render({ force: true })
             new DaggerheartQuickRules().render({ force: true });
         });
 
@@ -260,49 +262,45 @@ function toggleFloatingButton(show) {
             if (e.button !== 0) return;
 
             isDragging = true;
-            hasDragged = false; 
-            
+            hasDragged = false;
+
             startX = e.clientX;
             startY = e.clientY;
-            
+
             const rect = btn.getBoundingClientRect();
             initialLeft = rect.left;
             initialTop = rect.top;
-            
+
             btn.style.cursor = 'grabbing';
         });
 
         window.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            
+
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
-            
-            if (Math.sqrt(dx*dx + dy*dy) > dragThreshold) {
-                hasDragged = true; 
-                e.preventDefault(); 
+
+            if (Math.sqrt(dx * dx + dy * dy) > dragThreshold) {
+                hasDragged = true;
+                e.preventDefault();
                 btn.style.left = `${initialLeft + dx}px`;
                 btn.style.top = `${initialTop + dy}px`;
             }
-        });
+        }, { signal });
 
         window.addEventListener('mouseup', async () => {
             if (isDragging) {
                 isDragging = false;
                 btn.style.cursor = 'grab';
 
-                // --- NOVO: Salvar Posição ao Soltar ---
                 if (hasDragged) {
                     const newPos = {
                         left: parseInt(btn.style.left) || 0,
                         top: parseInt(btn.style.top) || 0
                     };
                     await game.settings.set(MODULE_ID, "floatingButtonPosition", newPos);
-                    // Reset flag apenas após salvar/processar
-                    // hasDragged será resetado no mousedown ou click subsequente, 
-                    // mas podemos garantir aqui que a lógica de drag terminou.
                 }
             }
-        });
+        }, { signal });
     }
 }
