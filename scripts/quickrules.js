@@ -1,6 +1,5 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
-import { MODULE_ID } from "./constants.js";
-import { DaggerheartAddMyContent } from "./addmycontent.js";
+import { MODULE_ID, CUSTOM_PACK_ID } from "./constants.js";
 import { buildSRD } from "./quickrules-builder.js";
 
 // Static session-level cache so journal survives window close/open cycles
@@ -111,14 +110,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
         if (existing) existing.close();
 
         ui.notifications.info("Daggerheart Quick Rules | User settings reset.");
-    }
-
-    /**
-     * OPENS THE ADD MY CONTENT WINDOW
-     * (Renamed from AddMyStuff)
-     */
-    static AddMyContent() {
-        new DaggerheartAddMyContent().render({ force: true });
     }
 
     async navigateToPage(pageId) {
@@ -354,10 +345,12 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             }
         }
         if (filters.custom) {
-            const customFolderName = "📜 Custom Quick Rules";
-            const customFolder = game.folders.find(f => f.name === customFolderName && f.type === "JournalEntry");
-            if (customFolder) {
-                for (const journal of customFolder.contents) {
+            // Custom content lives in a world-owned compendium created at runtime by the
+            // Manage Content settings screen (see constants.js / manage-content.js).
+            const customPack = game.packs.get(CUSTOM_PACK_ID);
+            if (customPack) {
+                const journals = await customPack.getDocuments();
+                for (const journal of journals) {
                     for (const page of journal.pages) {
                         if (page.testUserPermission(game.user, "OBSERVER")) {
                             pages.push(page);

@@ -1,8 +1,29 @@
 import { DaggerheartQuickRules } from "./quickrules.js";
+import { DaggerheartManageContent } from "./manage-content.js";
 import { MODULE_ID } from "./constants.js";
 
 Hooks.once("init", () => {
     console.log("Daggerheart Quick Rules | Initializing...");
+
+    // --- GM-only Manage Content menu ---
+    // Opens the unified screen for importing custom content and rebuilding the SRD.
+    game.settings.registerMenu(MODULE_ID, "manageContent", {
+        name: "Manage Content",
+        label: "Manage Content",
+        hint: "Import your own compendium/world content into Quick Rules and rebuild the SRD reference.",
+        icon: "fas fa-folder-plus",
+        type: DaggerheartManageContent,
+        restricted: true
+    });
+
+    // --- Persisted Manage Content selection ---
+    // Stores the GM's pending content selection so it survives closing/reopening the screen.
+    game.settings.register(MODULE_ID, "contentSelection", {
+        scope: "world",
+        config: false,
+        type: Array,
+        default: []
+    });
 
     // --- Floating Button Configuration ---
     game.settings.register(MODULE_ID, "showFloatingButton", {

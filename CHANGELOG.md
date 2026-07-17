@@ -1,3 +1,14 @@
+# 0.2.3
+
+- [Added] **Manage Content** — a single GM-only screen (Module Settings → *Manage Content*) that replaces the old console-driven `QuickRules.AddMyContent()` / `QuickRules.Build()` workflow
+  - **My Custom Content tab:** pick compendium folders, whole compendiums, or world folders (Items, Actors, Journals) from a tree, or drag folders/documents into a drop zone; a persistent selection list (survives closing/reopening) with per-entry removal; one destructive *Add to Quick Rules* commit rebuilds your custom content
+  - Journals import one page per source page (raw HTML); Items/Actors get the same rich pages as before
+  - Compendiums show their **origin module** so duplicate pack labels can be told apart, and added compendiums/folders are marked; adding a whole compendium marks all its folders
+  - **SRD Build tab:** *Rebuild SRD - All* and *Rebuild SRD - Rules* with explanations of each
+- [Added] **Visibility control:** world content keeps each entity's own permissions; compendium content is visible to players unless you flip a whole compendium to GM-only with the eye toggle (compendium folders and individual items are always visible — restrict at the compendium level)
+- [Changed] **Storage moved to a world compendium** (created at runtime, `world.quickrules-custom`) instead of the `📜 Custom Quick Rules` world folder — the custom content now survives module updates and is not declared in `module.json`
+- [Removed] The `📜 Custom Quick Rules` world-folder mechanism, the `DaggerheartAddMyContent` window, and the `QuickRules.AddMyContent()` console shortcut (`QuickRules.Open()` / `QuickRules.Build()` still work)
+
 # 0.2.2
 
 - [Performance] Journal cache is now pre-warmed on the `ready` hook — the expensive `pack.getDocuments()` call runs in the background at world load, making the first open near-instant

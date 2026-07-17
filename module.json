@@ -2,7 +2,7 @@
   "id": "daggerheart-quickrules",
   "title": "Daggerheart: Quick Rules",
   "description": "A quick reference module for displaying the Daggerheart SRD content.",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "compatibility": {
     "minimum": "14",
     "verified": "14",
@@ -21,6 +21,9 @@
   "styles": [
     {
       "src": "styles/quickrules.css"
+    },
+    {
+      "src": "styles/manage-content.css"
     }
   ],
   "relationships": {

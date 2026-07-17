@@ -33,9 +33,13 @@ Access the Daggerheart rules and your own custom notes instantly without clutter
 
 ### 🛠️ Customization
 
-* **Custom Content:** GMs can create a folder named `📜 Custom Quick Rules` to add house rules or lore that players can browse.
+* **Manage Content (GM only):** open **Module Settings → Manage Content** to bring your own content into Quick Rules. Pick compendium folders, whole compendiums, or world folders (Items, Actors, Journals) from the tree, or drag them into the drop zone, then press **Add to Quick Rules**. Journals import one page per source page.
 
-* **Smart Permissions:** Only shows content users have permission to see.
+* **Smart Permissions:** world content keeps each entity's own permissions; compendium content is visible to players unless you flip a whole compendium to **GM-only** with the eye toggle (compendium folders and individual items are always visible — restrict at the compendium level).
+
+* **Custom content survives updates:** your entries are stored in a world compendium created automatically, so they are not lost when the module updates.
+
+* **Rebuild the SRD:** the same screen has a **SRD Build** tab to rebuild the bundled reference (*All* or *Rules only*).
 
 You can learn more at [How to Add Your Content
 ](https://github.com/brunocalado/daggerheart-quickrules/wiki/How-to-Add-Your-Content)
@@ -54,7 +58,7 @@ You can learn more at [How to Add Your Content
 
 <p align="center"><img width="400" src="docs/buttons.webp" alt="Buttons"></p>
 
-### Managing Content
+### Reading & Navigation
 
 * **Search:** Type in the top bar to filter the list.
 
@@ -63,6 +67,10 @@ You can learn more at [How to Add Your Content
 * **Favorite:** Click the star icon (☆) next to any page to add it to your Favorites tab.
 
 * **Share:** Click the "Share" button inside an entry to post it to the Chat.
+
+### Adding Your Own Content (GM)
+
+* Open **Module Settings → Manage Content**, choose sources from the tree or drop zone, set compendium visibility if needed, then click **Add to Quick Rules**. See [How to Add Your Content](https://github.com/brunocalado/daggerheart-quickrules/wiki/How-to-Add-Your-Content).
 
 ## 🚀 Installation
 

@@ -1,0 +1,186 @@
+<div class="dh-manage-content">
+
+    {{!-- ============ Tabs ============ --}}
+    <nav class="dh-tabs">
+        <button type="button" class="dh-tab-btn {{#if isCustomTab}}is-active{{/if}}" data-action="switchTab" data-tab="custom">
+            <i class="fas fa-folder-plus"></i> My Custom Content
+        </button>
+        <button type="button" class="dh-tab-btn {{#if isSrdTab}}is-active{{/if}}" data-action="switchTab" data-tab="srd">
+            <i class="fas fa-hammer"></i> SRD Build
+        </button>
+    </nav>
+
+    {{!-- ============ TAB: My Custom Content ============ --}}
+    {{#if isCustomTab}}
+    <section class="dh-tab-panel">
+        <p class="dh-section-hint">
+            Pick compendium or world folders (Items, Actors, Journals) from the tree, or drag them
+            into the drop zone. Journals import one page per source page. <strong>Visibility:</strong>
+            world content keeps each entity's own permissions; compendium content is visible to
+            players unless you set a whole compendium to GM-only with the <i class="fas fa-eye"></i> toggle.
+        </p>
+
+        <div class="dh-mc-body">
+
+            {{!-- LEFT: source tree --}}
+            <div class="dh-mc-tree">
+                <div class="dh-tree-group-title">Compendiums</div>
+                {{#if hasCompendiums}}
+                    {{#each compendiums}}
+                    <div class="dh-tree-node">
+                        <div class="dh-tree-row {{#if this.expanded}}open{{/if}} {{#if this.added}}added{{/if}}">
+                            <span class="dh-tree-toggle" data-action="toggleNode" data-node-key="{{this.key}}">
+                                <i class="fas fa-caret-{{#if this.expanded}}down{{else}}right{{/if}} dh-caret"></i>
+                                <i class="fas fa-book"></i>
+                                <span class="dh-tree-labelwrap">
+                                    <span class="dh-tree-label">{{this.label}}</span>
+                                    <span class="dh-tree-source">{{this.source}}</span>
+                                </span>
+                                <span class="dh-count">({{this.total}})</span>
+                            </span>
+                            {{#if this.added}}
+                            <i class="fas {{#if this.visibleToPlayers}}fa-eye{{else}}fa-eye-slash{{/if}} dh-visibility-toggle"
+                               data-action="toggleVisibility" data-pack="{{this.packCollection}}"
+                               data-tooltip="{{#if this.visibleToPlayers}}Visible to players (click for GM only){{else}}GM only (click to show players){{/if}}"></i>
+                            {{/if}}
+                            <i class="fas {{#if this.added}}fa-check-circle{{else}}fa-plus-circle{{/if}} dh-source-toggle"
+                               data-action="addPack" data-pack="{{this.packCollection}}"
+                               data-tooltip="{{#if this.added}}Remove entire compendium{{else}}Add entire compendium{{/if}}"></i>
+                        </div>
+                        {{#if this.expanded}}
+                        <div class="dh-tree-children">
+                            {{#each this.folders}}
+                            {{#if this.viaParent}}
+                            <div class="dh-tree-leaf added locked" style="margin-left: {{this.indent}}px;"
+                                 data-tooltip="Included via the whole compendium">
+                                <i class="fas fa-folder"></i>
+                                <span class="dh-tree-label">{{this.name}}</span>
+                                <span class="dh-count">({{this.count}})</span>
+                                <i class="fas fa-check-circle dh-add-icon"></i>
+                            </div>
+                            {{else}}
+                            <div class="dh-tree-leaf {{#if this.added}}added{{/if}}" style="margin-left: {{this.indent}}px;"
+                                 data-action="addFolder" data-uuid="{{this.uuid}}"
+                                 data-tooltip="{{#if this.added}}Remove folder{{else}}Add folder{{/if}}">
+                                <i class="fas fa-folder"></i>
+                                <span class="dh-tree-label">{{this.name}}</span>
+                                <span class="dh-count">({{this.count}})</span>
+                                <i class="fas {{#if this.added}}fa-check-circle{{else}}fa-plus-circle{{/if}} dh-add-icon"></i>
+                            </div>
+                            {{/if}}
+                            {{/each}}
+                        </div>
+                        {{/if}}
+                    </div>
+                    {{/each}}
+                {{else}}
+                    <div class="dh-empty">No eligible compendiums.</div>
+                {{/if}}
+
+                <div class="dh-tree-group-title">World Folders</div>
+                {{#each worldGroups}}
+                <div class="dh-tree-node">
+                    <div class="dh-tree-row {{#if this.expanded}}open{{/if}}">
+                        <span class="dh-tree-toggle" data-action="toggleNode" data-node-key="{{this.key}}">
+                            <i class="fas fa-caret-{{#if this.expanded}}down{{else}}right{{/if}} dh-caret"></i>
+                            <i class="fas fa-globe"></i>
+                            <span class="dh-tree-label">{{this.label}}</span>
+                        </span>
+                    </div>
+                    {{#if this.expanded}}
+                    <div class="dh-tree-children">
+                        {{#if this.hasFolders}}
+                            {{#each this.folders}}
+                            <div class="dh-tree-leaf {{#if this.added}}added{{/if}}" style="margin-left: {{this.indent}}px;"
+                                 data-action="addFolder" data-uuid="{{this.uuid}}"
+                                 data-tooltip="{{#if this.added}}Remove folder{{else}}Add folder{{/if}}">
+                                <i class="fas fa-folder"></i>
+                                <span class="dh-tree-label">{{this.name}}</span>
+                                <span class="dh-count">({{this.count}})</span>
+                                <i class="fas {{#if this.added}}fa-check-circle{{else}}fa-plus-circle{{/if}} dh-add-icon"></i>
+                            </div>
+                            {{/each}}
+                        {{else}}
+                            <div class="dh-empty">No folders.</div>
+                        {{/if}}
+                    </div>
+                    {{/if}}
+                </div>
+                {{/each}}
+            </div>
+
+            {{!-- RIGHT: drop zone + selection --}}
+            <div class="dh-mc-selection">
+                <div class="dh-drop-zone" style="height: 30px; min-height: 30px; flex: 0 0 30px;">
+                    <i class="fas fa-hand-pointer"></i>
+                    <span>Drag folders, items, actors or journals here</span>
+                </div>
+
+                <div class="dh-selection-header">
+                    <span>Selected ({{selectionCount}})</span>
+                    {{#if hasSelection}}
+                    <button type="button" class="dh-link-btn" data-action="clearSelection">Clear all</button>
+                    {{/if}}
+                </div>
+
+                <div class="dh-selection-list">
+                    {{#each selection}}
+                    <div class="dh-selection-item">
+                        <i class="fas {{this.icon}}"></i>
+                        <span class="dh-selection-name">{{this.name}}</span>
+                        <span class="dh-selection-type">{{this.docType}}</span>
+                        <i class="fas fa-times dh-remove-btn" data-action="removeSelection"
+                           data-uuid="{{this.uuid}}" data-tooltip="Remove"></i>
+                    </div>
+                    {{else}}
+                    <div class="dh-empty">Nothing selected yet.</div>
+                    {{/each}}
+                </div>
+
+                <button type="button" class="dh-primary-btn" data-action="commit" {{#unless hasSelection}}disabled{{/unless}}>
+                    <i class="fas fa-check"></i> Add to Quick Rules
+                </button>
+                <p class="dh-warn-text">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Committing replaces all existing custom content.
+                </p>
+            </div>
+        </div>
+    </section>
+    {{/if}}
+
+    {{!-- ============ TAB: SRD Build ============ --}}
+    {{#if isSrdTab}}
+    <section class="dh-tab-panel">
+        <p class="dh-section-hint">
+            Rebuild the bundled Daggerheart SRD reference compendium that Quick Rules reads from.
+            You only need to do this after a system/content update or if the reference looks out of date.
+        </p>
+
+        <div class="dh-srd-card">
+            <h3><i class="fas fa-book"></i> Rebuild SRD - All</h3>
+            <p>
+                Full rebuild: every core <strong>rules</strong> page <em>plus</em> all compendium
+                entries (classes, subclasses, domains, ancestries, communities, beastforms,
+                weapons, armors, consumables, loot, adversaries and environments). Use this for a
+                complete reference. Takes the longest.
+            </p>
+            <button type="button" class="dh-secondary-btn" data-action="buildAll">
+                <i class="fas fa-book"></i> Rebuild SRD - All
+            </button>
+        </div>
+
+        <div class="dh-srd-card">
+            <h3><i class="fas fa-scroll"></i> Rebuild SRD - Rules</h3>
+            <p>
+                Rules only: rebuilds just the core rules pages and skips every compendium entry.
+                Faster and lighter — use it when you only need the rules text and don't want the
+                class/adversary/item catalogue included.
+            </p>
+            <button type="button" class="dh-secondary-btn" data-action="buildRules">
+                <i class="fas fa-scroll"></i> Rebuild SRD - Rules
+            </button>
+        </div>
+    </section>
+    {{/if}}
+</div>
