@@ -125,6 +125,10 @@ Hooks.once("init", () => {
 });
 
 Hooks.once("ready", () => {
+    // Pre-warm the journal cache in the background so the first open is instant.
+    // This runs asynchronously and does not block game startup.
+    DaggerheartQuickRules.prewarmCache();
+
     if (game.settings.get(MODULE_ID, "showFloatingButton")) {
         toggleFloatingButton(true);
     }
@@ -263,7 +267,8 @@ function toggleFloatingButton(show) {
                 hasDragged = false;
                 return;
             }
-            new DaggerheartQuickRules().render({ force: true });
+            // Use Open() to reuse existing window instead of always creating a new instance
+            DaggerheartQuickRules.Open();
         });
 
         btn.addEventListener('mousedown', (e) => {

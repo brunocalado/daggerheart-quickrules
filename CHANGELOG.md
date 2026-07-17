@@ -1,3 +1,9 @@
+# 0.2.2
+
+- [Performance] Journal cache is now pre-warmed on the `ready` hook — the expensive `pack.getDocuments()` call runs in the background at world load, making the first open near-instant
+- [Performance] Added a static session-level journal cache (`_staticJournalCache`) that survives window close/open cycles — no more network round-trips on repeated opens
+- [Fixed] Floating button click now calls `DaggerheartQuickRules.Open()` instead of always creating a new instance, consistent with all other entry points
+
 # 0.2.1
 
 - [Removed] AI Rules Assistant (Gemini integration) — the button, `Gemini API Key`/`Gemini Model` settings, and the bundled SRD data file have all been removed

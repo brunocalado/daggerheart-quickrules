@@ -3,6 +3,10 @@ import { MODULE_ID } from "./constants.js";
 import { DaggerheartAddMyContent } from "./addmycontent.js";
 import { buildSRD } from "./quickrules-builder.js";
 
+// Static session-level cache so journal survives window close/open cycles
+// Set by prewarmCache() in module.js on the 'ready' hook
+let _staticJournalCache = null;
+
 /**
  * Main Quick Rules Application for Daggerheart
  * Uses ApplicationV2 from Foundry V14
@@ -67,6 +71,28 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             existing.render({ force: true, focus: true });
         } else {
             new DaggerheartQuickRules().render({ force: true });
+        }
+    }
+
+    /**
+     * Pre-warms the journal cache in the background so the first open is instant.
+     * Called from module.js on the 'ready' hook.
+     */
+    static async prewarmCache() {
+        try {
+            const packName = `${MODULE_ID}.quickrules`;
+            const pack = game.packs.get(packName);
+            if (!pack) return;
+            let journals = await pack.getDocuments({ name: "Daggerheart SRD - All" });
+            if (!journals || journals.length === 0) {
+                journals = await pack.getDocuments({ name: "Daggerheart SRD - Rules" });
+            }
+            if (journals && journals.length > 0) {
+                _staticJournalCache = journals[0];
+                console.log(`Daggerheart Quick Rules | Journal cache pre-warmed (${_staticJournalCache.pages.size} pages).`);
+            }
+        } catch (e) {
+            console.warn("Daggerheart Quick Rules | prewarmCache failed:", e);
         }
     }
 
@@ -262,18 +288,27 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
     }
 
     async _getActiveJournal() {
+        // 1st priority: instance-level cache (survives re-renders of the same window)
         if (this._journalEntry) return this._journalEntry;
+        // 2nd priority: static module-level cache pre-warmed on ready (survives close/open)
+        if (_staticJournalCache) {
+            this._journalEntry = _staticJournalCache;
+            return this._journalEntry;
+        }
+        // Fallback: load from pack (first open if prewarm didn't finish yet)
         const packName = `${MODULE_ID}.quickrules`;
         const pack = game.packs.get(packName);
         if (!pack) return null;
         let journals = await pack.getDocuments({name: "Daggerheart SRD - All"});
         if (journals && journals.length > 0) {
             this._journalEntry = journals[0];
+            _staticJournalCache = journals[0]; // populate static cache for next time
             return this._journalEntry;
         }
         journals = await pack.getDocuments({name: "Daggerheart SRD - Rules"});
         if (journals && journals.length > 0) {
             this._journalEntry = journals[0];
+            _staticJournalCache = journals[0];
             return this._journalEntry;
         }
         return null;
