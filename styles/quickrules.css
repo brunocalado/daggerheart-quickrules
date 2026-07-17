@@ -353,7 +353,9 @@
     flex-shrink: 0;
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     z-index: 5;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 .daggerheart-quickrules-window .dh-quickrules-container.light .dh-content-controls {
     background: #f0f0f0;
@@ -373,6 +375,8 @@
     align-items: center;
     gap: 5px;
     transition: all 0.2s;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 .daggerheart-quickrules-window .dh-quickrules-container.light .dh-control-btn {
     background: #fff;
@@ -408,6 +412,8 @@
     text-transform: uppercase;
     margin: 0 5px;
     user-select: none;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 .daggerheart-quickrules-window .dh-quickrules-container.light .dh-font-label {
     color: #666;

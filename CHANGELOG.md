@@ -1,3 +1,7 @@
+# 0.2.4
+
+- [Fixed] Content toolbar (Prev/Next, font size, theme, Show Players, Send to Chat) no longer wraps buttons to a second line when the window is narrow — the row now scrolls horizontally instead
+
 # 0.2.3
 
 - [Added] **Manage Content** — a single GM-only screen (Module Settings → *Manage Content*) that replaces the old console-driven `QuickRules.AddMyContent()` / `QuickRules.Build()` workflow
