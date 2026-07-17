@@ -2,7 +2,6 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 import { MODULE_ID } from "./constants.js";
 import { DaggerheartAddMyContent } from "./addmycontent.js";
 import { buildSRD } from "./quickrules-builder.js";
-import { callGeminiAPI, loadSRD } from "./ai-assistant.js";
 
 /**
  * Main Quick Rules Application for Daggerheart
@@ -50,8 +49,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             toggleTheme: DaggerheartQuickRules._onToggleTheme,
             forceOpen: DaggerheartQuickRules._onForceOpen,
             clearSearch: DaggerheartQuickRules._onClearSearch,
-            toggleDeepSearch: DaggerheartQuickRules._onToggleDeepSearch,
-            askAI: DaggerheartQuickRules._onAskAI
+            toggleDeepSearch: DaggerheartQuickRules._onToggleDeepSearch
         }
     };
 
@@ -382,8 +380,7 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             nextRuleId: null,
             searchQuery: this.searchQuery,
             deepSearch: this.deepSearch,
-            isImage: false,
-            hasApiKey: isGM && !!game.settings.get(MODULE_ID, "geminiApiKey")
+            isImage: false
         };
         if (displayPages.length === 0) return context;
         context.hasPages = true;
@@ -671,98 +668,6 @@ export class DaggerheartQuickRules extends HandlebarsApplicationMixin(Applicatio
             content: cardContent,
             speaker: ChatMessage.getSpeaker({alias: "Quick Rules"})
         });
-    }
-
-    static async _onAskAI(event, target) {
-        event.preventDefault();
-        const searchInput = this.element.querySelector('.dh-search-input');
-        const question = searchInput?.value?.trim();
-        if (!question) {
-            ui.notifications.warn("Type a question in the search bar first.");
-            return;
-        }
-
-        const apiKey = game.settings.get(MODULE_ID, "geminiApiKey");
-        const model = game.settings.get(MODULE_ID, "geminiModel");
-        if (!apiKey) {
-            ui.notifications.warn("Gemini API key is not configured in Module Settings.");
-            return;
-        }
-
-        const userFlags = game.user.flags?.[MODULE_ID] || {};
-        const fontSize = userFlags.fontSize || 14;
-
-        // Show loading state in content area
-        const contentArea = this.element.querySelector('.dh-content-area');
-        if (!contentArea) return;
-
-        const loadingHtml = `
-            <div class="dh-ai-response-container">
-                <div class="dh-ai-header">
-                    <i class="fas fa-robot"></i> AI Assistant
-                    <button type="button" class="dh-control-btn dh-ai-close" data-action="closeAI" title="Close AI Response">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="dh-ai-body">
-                    <div class="dh-ai-question"><strong>Q:</strong> ${question}</div>
-                    <hr>
-                    <div class="dh-ai-thinking">
-                        <i class="fas fa-spinner fa-spin"></i> Thinking...
-                    </div>
-                </div>
-            </div>
-        `;
-        contentArea.innerHTML = loadingHtml;
-        contentArea.style.fontSize = `${fontSize}px`;
-
-        // Disable AI button during request
-        const aiBtn = this.element.querySelector('.dh-ai-btn');
-        if (aiBtn) aiBtn.disabled = true;
-
-        try {
-            const srdContent = await loadSRD();
-            const answer = await callGeminiAPI(apiKey, model, question, srdContent);
-
-            // Convert markdown-like response to HTML
-            const formattedAnswer = answer
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.+?)\*/g, '<em>$1</em>')
-                .replace(/\n/g, '<br>');
-
-            const responseHtml = `
-                <div class="dh-ai-response-container">
-                    <div class="dh-ai-header">
-                        <i class="fas fa-robot"></i> AI Assistant
-                    </div>
-                    <div class="dh-ai-body">
-                        <div class="dh-ai-question"><strong>Q:</strong> ${question}</div>
-                        <hr>
-                        <div class="dh-ai-answer">${formattedAnswer}</div>
-                    </div>
-                </div>
-            `;
-            contentArea.innerHTML = responseHtml;
-        } catch (err) {
-            console.error("Daggerheart AI Assistant |", err);
-            const errorHtml = `
-                <div class="dh-ai-response-container">
-                    <div class="dh-ai-header">
-                        <i class="fas fa-robot"></i> AI Assistant
-                    </div>
-                    <div class="dh-ai-body">
-                        <div class="dh-ai-question"><strong>Q:</strong> ${question}</div>
-                        <hr>
-                        <div class="dh-ai-error">
-                            <i class="fas fa-exclamation-triangle"></i> ${err.message}
-                        </div>
-                    </div>
-                </div>
-            `;
-            contentArea.innerHTML = errorHtml;
-        } finally {
-            if (aiBtn) aiBtn.disabled = false;
-        }
     }
 
 }

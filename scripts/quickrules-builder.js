@@ -40,7 +40,7 @@ function getHeaderLevel(node) {
 }
 
 /**
- * Converts HTML content to plain text for AI-friendly output
+ * Converts HTML content to plain text
  */
 function htmlToPlainText(html) {
     if (!html) return "";

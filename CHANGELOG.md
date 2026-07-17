@@ -1,3 +1,7 @@
+# 0.2.1
+
+- [Removed] AI Rules Assistant (Gemini integration) — the button, `Gemini API Key`/`Gemini Model` settings, and the bundled SRD data file have all been removed
+
 # 0.2.0
 
 - v14 only

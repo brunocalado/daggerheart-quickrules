@@ -1,14 +1,13 @@
 {
   "id": "daggerheart-quickrules",
   "title": "Daggerheart: Quick Rules",
-  "description": "A quick reference module for displaying the Daggerheart SRD content.",  
-  "version": "0.2.0",
-
+  "description": "A quick reference module for displaying the Daggerheart SRD content.",
+  "version": "0.2.1",
   "compatibility": {
     "minimum": "14",
-    "verified": "14"
+    "verified": "14",
+    "maximum": "14"
   },
-
   "authors": [
     {
       "name": "Mestre Digital",
@@ -16,14 +15,14 @@
       "flags": {}
     }
   ],
-
   "esmodules": [
     "scripts/module.js"
   ],
   "styles": [
-    "styles/quickrules.css"
+    {
+      "src": "styles/quickrules.css"
+    }
   ],
-
   "relationships": {
     "systems": [
       {
@@ -35,7 +34,6 @@
       }
     ]
   },
-
   "media": [
     {
       "type": "setup",
@@ -45,11 +43,9 @@
       "flags": {}
     }
   ],
-
   "url": "https://github.com/brunocalado/daggerheart-quickrules",
   "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-quickrules/main/module.json",
   "download": "https://codeload.github.com/brunocalado/daggerheart-quickrules/zip/main",
-  
   "packs": [
     {
       "label": "Quick Rules",
