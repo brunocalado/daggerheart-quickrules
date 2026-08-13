@@ -1,3 +1,9 @@
+# 0.2.5
+
+- [Removed] AI-generated `avatar.webp` and its use as the empty-state illustration (no longer permitted); the empty-state panel now shows title/subtitle/text only
+- [Changed] `banner.webp` and `thumbnail.webp` replaced with plain black placeholder images (same dimensions as before)
+
+
 # 0.2.4
 
 - [Fixed] Content toolbar (Prev/Next, font size, theme, Show Players, Send to Chat) no longer wraps buttons to a second line when the window is narrow — the row now scrolls horizontally instead

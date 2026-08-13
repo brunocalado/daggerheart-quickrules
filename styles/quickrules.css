@@ -722,17 +722,6 @@
     opacity: 0.8;
 }
 
-/* No borders and background for empty state image */
-.daggerheart-quickrules-window .dh-empty-state-img {
-    max-width: 80%; /* Takes up window width nicely */
-    opacity: 0.9; 
-    margin-top: 30px;
-    height: auto;
-    border: none;
-    background: transparent;
-    box-shadow: none; /* No shadow */
-}
-
 /* Feature List Styles */
 .daggerheart-quickrules-window .dh-feature-row,
 .chat-card .dh-feature-row {
